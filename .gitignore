@@ -1,0 +1,10 @@
+Library/
+Temp/
+.vscode/
+.gradle/
+obj/
+Assets/AssetStoreTools/
+Assets/AssetStoreTools.meta
+recording_*
+.vs/
+.DS_Store
