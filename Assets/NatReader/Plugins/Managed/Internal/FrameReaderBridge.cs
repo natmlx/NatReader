@@ -3,12 +3,12 @@
 *   Copyright (c) 2019 Yusuf Olokoba
 */
 
-namespace NatPlayer.Internal {
+namespace NatReader.Internal {
 
     using System;
     using System.Runtime.InteropServices;
 
-    public static class FrameExtractorBridge {
+    public static class FrameReaderBridge {
 
         private const string Assembly =
         #if (UNITY_IOS || UNITY_WEBGL) && !UNITY_EDITOR
