@@ -7,7 +7,7 @@ namespace NatReader {
 
     using System;
 
-    public class FrameReader : IDisposable {
+    public class FrameReader : IMediaReader {
         
         public FrameReader (FrameHandler frameHandler) {
 
