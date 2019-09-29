@@ -53,10 +53,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\NatReader\Examples\Thumbnail\Thumbnail.cs" />
      <Compile Include="Assets\NatReader\Plugins\Managed\FrameReader.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\FrameReaderAndroid.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\FrameReaderBridge.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\FrameReaderiOS.cs" />
+     <Compile Include="Assets\NatReader\Plugins\Managed\IMediaReader.cs" />
+     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\MediaReaderAndroid.cs" />
+     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\MediaReaderBridge.cs" />
+     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\MediaReaderiOS.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>/Users/yusuf/Documents/Projects/NatReader-API/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
  </Reference>

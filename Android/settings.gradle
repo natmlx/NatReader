@@ -1,1 +1,1 @@
-include ':NatReader'
+include ':NatReader', ':NatRender'

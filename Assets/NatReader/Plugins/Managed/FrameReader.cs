@@ -5,22 +5,69 @@
 
 namespace NatReader {
 
-    using System;
+    using UnityEngine;
+    using Internal;
 
-    public class FrameReader : IMediaReader {
+    /// <summary>
+    /// Video frame reader.
+    /// </summary>
+    public sealed class FrameReader : IMediaReader {
+
+        #region --Client API--
+
+        /// <summary>
+        /// Media pixel width
+        /// </summary>
+        public int pixelWidth {
+            get { return reader.pixelWidth; }
+        }
+
+        /// <summary>
+        /// Media pixel height
+        /// </summary>
+        public int pixelHeight {
+            get { return reader.pixelHeight; }
+        }
         
-        public FrameReader (FrameHandler frameHandler) {
-
+        /// <summary>
+        /// Create a frame reader
+        /// </summary>
+        /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
+        /// <param name="workerThread">Optional. When true, callbacks will be invoked on a worker thread which is typically faster.</param>
+        public FrameReader (string uri, bool workerThread = true) {
+            switch (Application.platform) {
+                case RuntimePlatform.Android: {
+                    var nativeReader = new AndroidJavaObject(@"com.olokobayusuf.natreader.FrameReader", uri, workerThread);
+                    this.reader = new MediaReaderAndroid(nativeReader);
+                    break;
+                }
+                case RuntimePlatform.IPhonePlayer: {
+                    var nativeReader = MediaReaderBridge.CreateFrameReader(uri, workerThread);
+                    this.reader = new MediaReaderiOS(nativeReader);
+                    break;
+                }
+                default:
+                    Debug.LogError("NatReader Error: FrameReader is not supported on this platform");
+                    break;
+            }
         }
 
-        public void StartReading (string url) {
-            
+        /// <summary>
+        /// Start reading frames
+        /// </summary>
+        /// <param name="frameHandler">Delegate invoked with new video frames</param>
+        public void StartReading (FrameHandler frameHandler) {
+            reader.StartReading(frameHandler);
         }
 
+        /// <summary>
+        /// Stop reading and release the reader
+        /// </summary>
         public void Dispose () {
-
+            reader.Dispose();
         }
-    }
+        #endregion
 
-    public delegate void FrameHandler (byte[] pixelBuffer, int width, int height, long timestamp);
+        private readonly IMediaReader reader;
+    }
 }
