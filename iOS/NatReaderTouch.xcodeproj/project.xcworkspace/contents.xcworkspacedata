@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:NatReader.xcodeproj">
+      location = "self:/Users/yusuf/Documents/Projects/NatReader-API/iOS/NatReaderTouch.xcodeproj">
    </FileRef>
 </Workspace>

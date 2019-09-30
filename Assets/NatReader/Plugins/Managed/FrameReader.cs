@@ -33,16 +33,15 @@ namespace NatReader {
         /// Create a frame reader
         /// </summary>
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
-        /// <param name="workerThread">Optional. When true, callbacks will be invoked on a worker thread which is typically faster.</param>
-        public FrameReader (string uri, bool workerThread = true) {
+        public FrameReader (string uri) {
             switch (Application.platform) {
                 case RuntimePlatform.Android: {
-                    var nativeReader = new AndroidJavaObject(@"com.olokobayusuf.natreader.FrameReader", uri, workerThread);
+                    var nativeReader = new AndroidJavaObject(@"com.olokobayusuf.natreader.FrameReader", uri);
                     this.reader = new MediaReaderAndroid(nativeReader);
                     break;
                 }
                 case RuntimePlatform.IPhonePlayer: {
-                    var nativeReader = MediaReaderBridge.CreateFrameReader(uri, workerThread);
+                    var nativeReader = MediaReaderBridge.CreateFrameReader(uri);
                     this.reader = new MediaReaderiOS(nativeReader);
                     break;
                 }

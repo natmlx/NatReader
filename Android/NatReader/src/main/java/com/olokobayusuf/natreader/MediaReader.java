@@ -29,8 +29,6 @@ public interface MediaReader {
         /**
          * Delegate invoked with new video frames
          * @param pixelBuffer Pixel buffer containing frame in RGBA32 layout
-         * @param width Frame width
-         * @param height Frame height
          * @param timestamp Frame timestamp in nanoseconds
          */
         void onFrame (ByteBuffer pixelBuffer, long timestamp);

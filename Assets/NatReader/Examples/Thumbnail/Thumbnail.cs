@@ -16,7 +16,7 @@ namespace NatReader.Examples {
         private FrameReader frameReader;
 
         void Start () {
-            frameReader = new FrameReader(@"", false);
+            frameReader = new FrameReader(@"");
             frameReader.StartReading(OnFrame);
         }
 

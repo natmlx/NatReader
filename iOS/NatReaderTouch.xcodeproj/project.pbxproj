@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8868FADE233924CD002902FE /* NRFrameExtractor.m in Sources */ = {isa = PBXBuildFile; fileRef = 8868FADD233924CD002902FE /* NRFrameExtractor.m */; };
+		8868FADE233924CD002902FE /* NRFrameReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8868FADD233924CD002902FE /* NRFrameReader.m */; };
 		8868FAE6233924DC002902FE /* Bridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 8868FAE5233924DC002902FE /* Bridge.m */; };
 		8868FAE7233929FB002902FE /* libNatReader.a in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8868FAD9233924CD002902FE /* libNatReader.a */; };
 /* End PBXBuildFile section */
@@ -27,8 +27,8 @@
 
 /* Begin PBXFileReference section */
 		8868FAD9233924CD002902FE /* libNatReader.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libNatReader.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		8868FADC233924CD002902FE /* NRFrameExtractor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NRFrameExtractor.h; sourceTree = "<group>"; };
-		8868FADD233924CD002902FE /* NRFrameExtractor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NRFrameExtractor.m; sourceTree = "<group>"; };
+		8868FADC233924CD002902FE /* NRMediaReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NRMediaReader.h; sourceTree = "<group>"; };
+		8868FADD233924CD002902FE /* NRFrameReader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NRFrameReader.m; sourceTree = "<group>"; };
 		8868FAE5233924DC002902FE /* Bridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Bridge.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -62,8 +62,8 @@
 		8868FADB233924CD002902FE /* NatReader */ = {
 			isa = PBXGroup;
 			children = (
-				8868FADC233924CD002902FE /* NRFrameExtractor.h */,
-				8868FADD233924CD002902FE /* NRFrameExtractor.m */,
+				8868FADC233924CD002902FE /* NRMediaReader.h */,
+				8868FADD233924CD002902FE /* NRFrameReader.m */,
 				8868FAE5233924DC002902FE /* Bridge.m */,
 			);
 			path = NatReader;
@@ -103,7 +103,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 8868FAD4233924CD002902FE /* Build configuration list for PBXProject "NatReader" */;
+			buildConfigurationList = 8868FAD4233924CD002902FE /* Build configuration list for PBXProject "NatReaderTouch" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -127,7 +127,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8868FAE6233924DC002902FE /* Bridge.m in Sources */,
-				8868FADE233924CD002902FE /* NRFrameExtractor.m in Sources */,
+				8868FADE233924CD002902FE /* NRFrameReader.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,7 +275,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8868FAD4233924CD002902FE /* Build configuration list for PBXProject "NatReader" */ = {
+		8868FAD4233924CD002902FE /* Build configuration list for PBXProject "NatReaderTouch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8868FAE0233924CD002902FE /* Debug */,

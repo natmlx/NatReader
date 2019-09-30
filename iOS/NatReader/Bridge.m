@@ -6,21 +6,30 @@
 //  Copyright © 2019 Yusuf Olokoba. All rights reserved.
 //
 
-#import "NRFrameExtractor.h"
+#import "NRMediaReader.h"
 
-void* NRCreateFrameExtractor (void (*callback) (void*, uint8_t*, int32_t, int32_t, int64_t), void* context) {
-    NRFrameExtractor* extractor = [NRFrameExtractor.alloc initWithFrameBlock:^(uint8_t* pixelBuffer, int32_t width, int32_t height, int64_t timestamp) {
-        callback(context, pixelBuffer, width, height, timestamp);
+void* NRCreateFrameExtractor (const char* url) {
+    NSURL* uri = [NSURL URLWithString:[NSString stringWithUTF8String:url]];
+    NRFrameReader* reader = [NRFrameReader.alloc initWithURI:uri];
+    return (__bridge_retained void*)reader;
+}
+
+void NRStartReading (id<NRMediaReader> reader, void (*callback) (void*, uint8_t*, int64_t), void* context) {
+    [reader startReading:^(uint8_t *pixelBuffer, int64_t timestamp) {
+        callback(context, pixelBuffer, timestamp);
     }];
-    return (__bridge_retained void*)extractor;
 }
 
-void NRExtract (NRFrameExtractor* extractor, const char* url) {
-    [extractor extract:[NSURL URLWithString:[NSString stringWithUTF8String:url]]];
+void NRDispose (void* readerPtr) {
+    id<NRMediaReader> reader = (__bridge_transfer id<NRMediaReader>)readerPtr;
+    [reader dispose];
+    reader = nil;
 }
 
-void NRDispose (void* extractorPtr) {
-    NRFrameExtractor* extractor = (__bridge_transfer NRFrameExtractor*)extractorPtr;
-    [extractor dispose];
-    extractor = nil;
+int NRPixelWidth (id<NRMediaReader> reader) {
+    return reader.frameSize.width;
+}
+
+int NRPixelHeight (id<NRMediaReader> reader) {
+    return reader.frameSize.height;
 }

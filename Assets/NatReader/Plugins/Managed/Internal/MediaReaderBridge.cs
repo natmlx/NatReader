@@ -21,7 +21,7 @@ namespace NatReader.Internal {
 
         #if UNITY_IOS && !UNITY_EDITOR
         [DllImport(Assembly, EntryPoint = @"NRCreateFrameReader")]
-        public static extern IntPtr CreateFrameReader (string url, bool workerThread);
+        public static extern IntPtr CreateFrameReader (string url);
         [DllImport(Assembly, EntryPoint = @"NRStartReading")]
         public static extern void StartReading (this IntPtr reader, FrameHandler frameHandler, IntPtr context);
         [DllImport(Assembly, EntryPoint = @"NRDispose")]
@@ -31,7 +31,7 @@ namespace NatReader.Internal {
         [DllImport(Assembly, EntryPoint = @"NRPixelHeight")]
         public static extern int PixelHeight (this IntPtr reader);
         #else
-        public static IntPtr CreateFrameReader (string url, bool workerThread) { return IntPtr.Zero; }
+        public static IntPtr CreateFrameReader (string url) { return IntPtr.Zero; }
         public static void StartReading (this IntPtr reader, FrameHandler frameHandler, IntPtr context) {}
         public static void Dispose (this IntPtr reader) {}
         public static int PixelWidth (this IntPtr reader) { return 0; }

@@ -15,50 +15,47 @@ import android.view.Surface;
 import com.olokobayusuf.natrender.GLBlitEncoder;
 import com.olokobayusuf.natrender.GLRenderContext;
 import com.olokobayusuf.natrender.Unmanaged;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public final class FrameReader implements MediaReader {
 
     //region --Client API--
 
-    public interface Callback {
-        void onFrame (ByteBuffer pixelBuffer, int width, int height, long timestamp);
-    }
-
-    public FrameReader(Callback callback) {
-        this.callback = callback;
-        this.callbackHandler = new Handler(Looper.myLooper());
+    public FrameReader(String uri) {
+        // State
         this.extractor = new MediaExtractor();
-    }
-
-    public void startReading (String url) {
-        // Set extractor URL
+        this.callbackHandler = new Handler(Looper.myLooper());
+        // Setup extractor
         try {
-            extractor.setDataSource(url);
-        } catch (IOException ex) { return; }
-        // Get the last video track index
+            extractor.setDataSource(uri);
+        } catch (IOException ex) {
+            this.videoTrackIndex = -1;
+            return;
+        }
         for (int i = 0; i < extractor.getTrackCount(); i++)
             if (extractor.getTrackFormat(i).getString(MediaFormat.KEY_MIME).startsWith("video/")) {
                 videoTrackIndex = i;
                 break;
             }
         if (videoTrackIndex == -1) {
-            Log.e("Unity", "NatReader Error: Failed to find video track in media at URL: " + url);
+            Log.e("Unity", "NatReader Error: Failed to find video track in media at URL: " + uri);
             return;
         }
-        // Extract properties
         extractor.selectTrack(videoTrackIndex);
-        final MediaFormat format = extractor.getTrackFormat(videoTrackIndex);
-        final int width = format.getInteger(MediaFormat.KEY_WIDTH);
-        final int height = format.getInteger(MediaFormat.KEY_HEIGHT);
+        this.format = extractor.getTrackFormat(videoTrackIndex);
+    }
+
+    public void startReading (Callback callback) {
         // Create frame reader
-        imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 4);
+        this.callback = callback;
+        pixelBuffer = ByteBuffer.allocateDirect(pixelWidth() * pixelHeight() * 4).order(ByteOrder.nativeOrder());
+        imageReader = ImageReader.newInstance(pixelWidth(), pixelHeight(), PixelFormat.RGBA_8888, 3);
         renderContext = new GLRenderContext(null, imageReader.getSurface(), false);
         renderContext.start();
         renderContextHandler = new Handler(renderContext.getLooper());
-        imageReader.setOnImageAvailableListener(imageReaderCallback, renderContextHandler);
+        imageReader.setOnImageAvailableListener(imageReaderCallback, callbackHandler);
         renderContextHandler.post(new Runnable() {
             @Override
             public void run () {
@@ -73,15 +70,14 @@ public final class FrameReader implements MediaReader {
                     decoder.setCallback(decoderCallback, renderContextHandler);
                     decoder.configure(format, decoderOutputSurface, null, 0);
                     decoder.start();
+                    // Create blit encoder
+                    blitEncoder = GLBlitEncoder.externalBlitEncoder();
                 } catch (IOException ex) {
                     Log.e("Unity", "NatReader Error: Failed to start decoder with error: " +  ex);
                     decoderOutputSurface.release();
                     decoderOutputTexture.release();
                     GLBlitEncoder.releaseTexture(decoderOutputTextureID);
-                    return;
                 }
-                // Create blit encoder
-                blitEncoder = GLBlitEncoder.externalBlitEncoder();
             }
         });
     }
@@ -90,15 +86,25 @@ public final class FrameReader implements MediaReader {
         extractor.unselectTrack(videoTrackIndex);
         videoTrackIndex = -1;
     }
+
+    public int pixelWidth () {
+        return format.getInteger(MediaFormat.KEY_WIDTH);
+    }
+
+    public int pixelHeight () {
+        return format.getInteger(MediaFormat.KEY_HEIGHT);
+    }
     //endregion
 
 
     //region --Operations--
 
-    private final Callback callback;
-    private final Handler callbackHandler;
     private final MediaExtractor extractor;
+    private final Handler callbackHandler;
     private int videoTrackIndex = -1;
+    private MediaFormat format;
+    private Callback callback;
+
     private ImageReader imageReader;
     private ByteBuffer pixelBuffer;
     private GLRenderContext renderContext;
@@ -180,13 +186,8 @@ public final class FrameReader implements MediaReader {
             final long timestamp = image.getTimestamp();
             Unmanaged.copyFrame(Unmanaged.baseAddress(sourceBuffer), width, height, stride, Unmanaged.baseAddress(pixelBuffer));
             image.close();
-            // Send to handler
-            callbackHandler.post(new Runnable() {
-                @Override
-                public void run () {
-                    callback.onFrame(pixelBuffer, width, height, timestamp);
-                }
-            });
+            // Send to callback
+            callback.onFrame(pixelBuffer, timestamp);
         }
     };
     //endregion
