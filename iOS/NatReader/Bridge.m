@@ -8,7 +8,7 @@
 
 #import "NRMediaReader.h"
 
-void* NRCreateFrameExtractor (const char* url) {
+void* NRCreateFrameReader (const char* url) {
     NSURL* uri = [NSURL URLWithString:[NSString stringWithUTF8String:url]];
     NRFrameReader* reader = [NRFrameReader.alloc initWithURI:uri];
     return (__bridge_retained void*)reader;

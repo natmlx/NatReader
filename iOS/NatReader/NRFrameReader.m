@@ -56,9 +56,9 @@
                     int stride = (int)CVPixelBufferGetBytesPerRow(sourceBuffer);
                     void* baseAddress = CVPixelBufferGetBaseAddress(sourceBuffer);
                     pixelBuffer = pixelBuffer ? pixelBuffer : malloc(width * height * 4);
-                    vImage_Buffer input = { baseAddress, height, width, stride };
+                    vImage_Buffer input = { baseAddress + stride * (height - 1), height, width, -stride };
                     vImage_Buffer output = { pixelBuffer, height, width, width * 4 };
-                    vImageVerticalReflect_ARGB8888(&input, &output, kvImageNoFlags); // CHECK // If swizzle, then use inversion hack
+                    vImagePermuteChannels_ARGB8888(&input, &output, (uint8_t[4]){ 2, 1, 0, 3 }, kvImageNoFlags);
                     CVPixelBufferUnlockBaseAddress(sourceBuffer, kCVPixelBufferLock_ReadOnly);
                     CFRelease(sampleBuffer);
                     dispatch_sync(dispatch_get_main_queue(), ^{ frameBlock(pixelBuffer, timestamp); });

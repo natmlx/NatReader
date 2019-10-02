@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/NatReader/Examples/Thumbnail/Thumbnail.unity
+    guid: 7b165a3b03d8a4c99946fb3df23ccebb
   m_configObjects: {}
