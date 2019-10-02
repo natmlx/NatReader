@@ -9,18 +9,15 @@
 @import Foundation;
 @import CoreVideo;
 
-typedef void (^FrameBlock) (uint8_t* pixelBuffer, int64_t timestamp);
-
 @protocol NRMediaReader <NSObject>
 @required
-- (void) startReading:(FrameBlock) frameBlock;
+- (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
 - (void) dispose;
-@property (readonly) CGSize frameSize;
 @end
 
 @interface NRFrameReader : NSObject <NRMediaReader>
-- (instancetype) initWithURI:(NSURL*) uri;
-- (void) startReading:(FrameBlock) frameBlock;
+- (instancetype) initWithURI:(NSURL*) uri andStartTime:(int64_t) startTime;
+- (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
 - (void) dispose;
 @property (readonly) CGSize frameSize;
 @end
