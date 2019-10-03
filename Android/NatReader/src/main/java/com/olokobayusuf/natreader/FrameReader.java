@@ -9,7 +9,7 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.opengl.Matrix;
 import android.os.Handler;
-import android.os.Looper;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 import com.olokobayusuf.natrender.GLBlitEncoder;
@@ -18,81 +18,162 @@ import com.olokobayusuf.natrender.Unmanaged;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.Semaphore;
 
 public final class FrameReader implements MediaReader {
 
     //region --Client API--
 
-    public FrameReader(String uri) {
-        // State
-        this.extractor = new MediaExtractor();
-        this.callbackHandler = new Handler(Looper.myLooper());
+    public FrameReader (String uri, long startTime) {
         // Setup extractor
+        this.extractor = new MediaExtractor();
         try {
             extractor.setDataSource(uri);
+            extractor.seekTo((long)(startTime / 1e+3), MediaExtractor.SEEK_TO_CLOSEST_SYNC);
         } catch (IOException ex) {
-            this.videoTrackIndex = -1;
+            Log.e("Unity", "NatReader Error: Failed to create media extractor with error: " + ex);
             return;
         }
+        int videoTrackIndex = -1;
         for (int i = 0; i < extractor.getTrackCount(); i++)
             if (extractor.getTrackFormat(i).getString(MediaFormat.KEY_MIME).startsWith("video/")) {
                 videoTrackIndex = i;
                 break;
             }
         if (videoTrackIndex == -1) {
-            Log.e("Unity", "NatReader Error: Failed to find video track in media at URL: " + uri);
+            Log.e("Unity", "NatReader Error: Failed to find video track in media file");
             return;
         }
         extractor.selectTrack(videoTrackIndex);
-        this.format = extractor.getTrackFormat(videoTrackIndex);
-    }
-
-    public void startReading (Callback callback) {
-        // Create frame reader
-        this.callback = callback;
-        pixelBuffer = ByteBuffer.allocateDirect(pixelWidth() * pixelHeight() * 4).order(ByteOrder.nativeOrder());
-        imageReader = ImageReader.newInstance(pixelWidth(), pixelHeight(), PixelFormat.RGBA_8888, 3);
-        renderContext = new GLRenderContext(null, imageReader.getSurface(), false);
-        renderContext.start();
-        renderContextHandler = new Handler(renderContext.getLooper());
-        imageReader.setOnImageAvailableListener(imageReaderCallback, callbackHandler);
+        final MediaFormat format = extractor.getTrackFormat(videoTrackIndex);
+        final int videoWidth = format.getInteger(MediaFormat.KEY_WIDTH);
+        final int videoHeight = format.getInteger(MediaFormat.KEY_HEIGHT);
+        // Setup image reader
+        this.imageReaderThread.start();
+        this.imageReaderHandler = new Handler(imageReaderThread.getLooper());
+        this.imageReader = ImageReader.newInstance(videoWidth, videoHeight, PixelFormat.RGBA_8888, 3);
+        // Setup render context
+        this.renderContext = new GLRenderContext(null, imageReader.getSurface(), false);
+        this.renderContext.start();
+        this.renderContextHandler = new Handler(renderContext.getLooper());
+        this.pixelBuffer = ByteBuffer.allocateDirect(videoWidth * videoHeight * 4).order(ByteOrder.nativeOrder());
+        // Create decoder
+        final Semaphore completionToken = new Semaphore(0);
         renderContextHandler.post(new Runnable() {
             @Override
             public void run () {
                 // Create output texture
                 decoderOutputTextureID = GLBlitEncoder.getExternalTexture();
                 decoderOutputTexture = new SurfaceTexture(decoderOutputTextureID);
-                decoderOutputTexture.setOnFrameAvailableListener(surfaceTextureCallback, renderContextHandler);
                 decoderOutputSurface = new Surface(decoderOutputTexture);
+                blitEncoder = GLBlitEncoder.externalBlitEncoder();
                 // Create decoder
                 try {
-                    final MediaCodec decoder = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME));
-                    decoder.setCallback(decoderCallback, renderContextHandler);
+                    decoder = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME));
                     decoder.configure(format, decoderOutputSurface, null, 0);
                     decoder.start();
-                    // Create blit encoder
-                    blitEncoder = GLBlitEncoder.externalBlitEncoder();
                 } catch (IOException ex) {
                     Log.e("Unity", "NatReader Error: Failed to start decoder with error: " +  ex);
-                    decoderOutputSurface.release();
-                    decoderOutputTexture.release();
-                    GLBlitEncoder.releaseTexture(decoderOutputTextureID);
+                } finally {
+                    completionToken.release();
                 }
             }
         });
+        try { completionToken.acquire(); } catch (InterruptedException ex) {}
+        Log.d("Unity", "NatReader: Created FrameReader for media at '"+uri+"' with size: "+pixelWidth()+"x"+pixelHeight());
     }
 
+    @Override
     public void release () {
-        extractor.unselectTrack(videoTrackIndex);
-        videoTrackIndex = -1;
+        extractor.release();
+        decoder.stop();
+        decoder.release();
+        renderContextHandler.post(new Runnable() {
+            @Override
+            public void run () {
+                blitEncoder.release();
+                decoderOutputSurface.release();
+                decoderOutputTexture.release();
+                GLBlitEncoder.releaseTexture(decoderOutputTextureID);
+            }
+        });
+        renderContext.quitSafely();
+        try { renderContext.join(); } catch (InterruptedException ex) {}
+        imageReader.close();
+        imageReaderThread.quitSafely();
+        pixelBuffer = null;
+    }
+
+    @Override
+    public SampleBuffer copyNextFrame () {
+        // Set callbacks
+        final Semaphore renderCompletionToken = new Semaphore(0);
+        final Semaphore readbackCompletionToken = new Semaphore(0);
+        final SampleBuffer sampleBuffer = new SampleBuffer();
+        decoderOutputTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+            @Override
+            public void onFrameAvailable (SurfaceTexture surfaceTexture) {
+                // Update transform
+                final float[] transform = new float[16];
+                surfaceTexture.updateTexImage();
+                surfaceTexture.getTransformMatrix(transform);
+                Matrix.translateM(transform, 0, 0.5f, 0.5f, 0.f);
+                Matrix.scaleM(transform, 0, 1, -1, 1);
+                Matrix.translateM(transform, 0, -0.5f, -0.5f, 0.f);
+                // Blit
+                blitEncoder.blit(decoderOutputTextureID, transform);
+                renderContext.setPresentationTime(surfaceTexture.getTimestamp());
+                renderContext.swapBuffers();
+                // Signal completion
+                renderCompletionToken.release();
+            }
+        }, renderContextHandler);
+        imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+            @Override
+            public void onImageAvailable (ImageReader imageReader) {
+                // Create contiguous buffer with no padding
+                final Image image = imageReader.acquireLatestImage();
+                if (image != null) {
+                    final Image.Plane imagePlane = image.getPlanes()[0];
+                    final ByteBuffer sourceBuffer = imagePlane.getBuffer();
+                    final int width = image.getWidth();
+                    final int height = image.getHeight();
+                    final int stride = imagePlane.getRowStride();
+                    Unmanaged.copyFrame(Unmanaged.baseAddress(sourceBuffer), width, height, stride, Unmanaged.baseAddress(pixelBuffer));
+                    sampleBuffer.buffer = pixelBuffer;
+                    sampleBuffer.timestamp = image.getTimestamp();
+                    image.close();
+                }
+                // Send to waiter
+                readbackCompletionToken.release();
+            }
+        }, imageReaderHandler);
+        // Feed decoder until it has an output buffer
+        final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+        int outBufferIndex;
+        while ((outBufferIndex = decoder.dequeueOutputBuffer(bufferInfo, 0)) < 0) {
+            final int bufferIndex = decoder.dequeueInputBuffer(-1L);
+            final ByteBuffer inputBuffer = decoder.getInputBuffer(bufferIndex);
+            final int dataSize = extractor.readSampleData(inputBuffer, 0);
+            if (dataSize >= 0) {
+                decoder.queueInputBuffer(bufferIndex, 0, dataSize, extractor.getSampleTime(), extractor.getSampleFlags());
+                extractor.advance();
+            } else
+                return SampleBuffer.EOS;
+        }
+        decoder.releaseOutputBuffer(outBufferIndex, true);
+        // Wait for surface texture rendering
+        try { renderCompletionToken.acquire(); } catch (InterruptedException ex) {}
+        try { readbackCompletionToken.acquire(); } catch (InterruptedException ex) {}
+        return sampleBuffer;
     }
 
     public int pixelWidth () {
-        return format.getInteger(MediaFormat.KEY_WIDTH);
+        return imageReader != null ? imageReader.getWidth() : 0;
     }
 
     public int pixelHeight () {
-        return format.getInteger(MediaFormat.KEY_HEIGHT);
+        return imageReader != null ? imageReader.getHeight() : 0;
     }
     //endregion
 
@@ -100,95 +181,17 @@ public final class FrameReader implements MediaReader {
     //region --Operations--
 
     private final MediaExtractor extractor;
-    private final Handler callbackHandler;
-    private int videoTrackIndex = -1;
-    private MediaFormat format;
-    private Callback callback;
-
+    private final HandlerThread imageReaderThread = new HandlerThread("FrameReader");
     private ImageReader imageReader;
-    private ByteBuffer pixelBuffer;
+    private Handler imageReaderHandler;
     private GLRenderContext renderContext;
     private Handler renderContextHandler;
-    private GLBlitEncoder blitEncoder;
+    private ByteBuffer pixelBuffer;
+
     private int decoderOutputTextureID;
     private SurfaceTexture decoderOutputTexture;
     private Surface decoderOutputSurface;
-
-    private final MediaCodec.Callback decoderCallback = new MediaCodec.Callback () {
-
-        @Override
-        public void onInputBufferAvailable (MediaCodec codec, int index) {
-            final ByteBuffer inputBuffer = codec.getInputBuffer(index);
-            final int dataSize = extractor.readSampleData(inputBuffer, 0);
-            if (dataSize >= 0) {
-                codec.queueInputBuffer(index, 0, dataSize, extractor.getSampleTime(), extractor.getSampleFlags());
-                extractor.advance();
-            } else
-                codec.queueInputBuffer(index, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-        }
-
-        @Override
-        public void onOutputBufferAvailable (MediaCodec codec, int index, MediaCodec.BufferInfo info) {
-            // Send to consumer
-            codec.releaseOutputBuffer(index, true);
-            // Check for EOS
-            if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                extractor.unselectTrack(videoTrackIndex);
-                extractor.release();
-                codec.stop();
-                codec.release();
-                //decoderThread.quitSafely();
-            }
-        }
-
-        @Override
-        public void onError (MediaCodec codec, MediaCodec.CodecException e) {
-            Log.e("Unity", "NatReader Error: Decoder encountered error: " + e);
-        }
-
-        @Override
-        public void onOutputFormatChanged (MediaCodec codec, MediaFormat format) {
-            Log.v("Unity", "NatReader: Decoder received media format: " + format);
-        }
-    };
-
-    private final SurfaceTexture.OnFrameAvailableListener surfaceTextureCallback = new SurfaceTexture.OnFrameAvailableListener() {
-
-        @Override
-        public void onFrameAvailable (SurfaceTexture surfaceTexture) {
-            // Update transform
-            final float[] transform = new float[16];
-            surfaceTexture.updateTexImage();
-            surfaceTexture.getTransformMatrix(transform);
-            Matrix.translateM(transform, 0, 0.5f, 0.5f, 0.f);
-            Matrix.scaleM(transform, 0, 1, -1, 1);
-            Matrix.translateM(transform, 0, -0.5f, -0.5f, 0.f);
-            // Blit
-            blitEncoder.blit(decoderOutputTextureID, transform);
-            renderContext.setPresentationTime(surfaceTexture.getTimestamp());
-            renderContext.swapBuffers();
-        }
-    };
-
-    private final ImageReader.OnImageAvailableListener imageReaderCallback = new ImageReader.OnImageAvailableListener() {
-
-        @Override
-        public void onImageAvailable (ImageReader imageReader) {
-            // Create contiguous buffer with no padding
-            final Image image = imageReader.acquireLatestImage();
-            if (image == null)
-                return;
-            final Image.Plane imagePlane = image.getPlanes()[0];
-            final ByteBuffer sourceBuffer = imagePlane.getBuffer();
-            final int width = image.getWidth();
-            final int height = image.getHeight();
-            final int stride = imagePlane.getRowStride();
-            final long timestamp = image.getTimestamp();
-            Unmanaged.copyFrame(Unmanaged.baseAddress(sourceBuffer), width, height, stride, Unmanaged.baseAddress(pixelBuffer));
-            image.close();
-            // Send to callback
-            callback.onFrame(pixelBuffer, timestamp);
-        }
-    };
+    private GLBlitEncoder blitEncoder;
+    private MediaCodec decoder;
     //endregion
 }

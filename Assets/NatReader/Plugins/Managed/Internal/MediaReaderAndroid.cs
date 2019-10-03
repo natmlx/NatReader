@@ -6,35 +6,38 @@
 namespace NatReader.Internal {
 
     using UnityEngine;
-    using UnityEngine.Scripting;
     using System;
+    using System.Runtime.InteropServices;
 
-    public sealed class MediaReaderAndroid : AndroidJavaProxy, IMediaReader {
+    public sealed class MediaReaderAndroid : INativeMediaReader {
 
         #region --IMediaReader--
 
-        public int pixelWidth {
-            get { return reader.Call<int>(@"pixelWidth"); }
-        }
-
-        public int pixelHeight {
-            get { return reader.Call<int>(@"pixelHeight"); }
-        }
-
-        public MediaReaderAndroid (AndroidJavaObject reader) : base("com.olokobayusuf.natreader.MediaReader$Callback") {
+        public MediaReaderAndroid (AndroidJavaObject reader) {
             this.reader = reader;
             this.Unmanaged = new AndroidJavaClass(@"com.olokobayusuf.natrender.Unmanaged");
         }
 
         public void Dispose () {
             reader.Call(@"release");
-            reader.Dispose();
-            frameHandler = null;
         }
 
-        public void StartReading (FrameHandler frameHandler) {
-            this.frameHandler = frameHandler;
-            reader.Call(@"startReading", this);
+        public bool CopyNextFrame (IntPtr dstBuffer, out int dstSize, out long timestamp) {
+            var sampleBuffer = reader.Call<AndroidJavaObject>(@"copyNextFrame");
+            timestamp = sampleBuffer.Get<long>(@"timestamp");
+            try {
+                var pixelBuffer = sampleBuffer.Get<AndroidJavaObject>(@"buffer");
+                dstSize = pixelBuffer.Call<int>(@"capacity");
+                var srcBuffer = (IntPtr)Unmanaged.CallStatic<long>(@"baseAddress", pixelBuffer);
+                memcpy(dstBuffer, srcBuffer, (UIntPtr)dstSize);
+                pixelBuffer.Dispose();
+                return true;
+            } catch {
+                dstSize = 0;
+                return false;
+            } finally {
+                sampleBuffer.Dispose();
+            }
         }
         #endregion
 
@@ -43,14 +46,13 @@ namespace NatReader.Internal {
 
         private readonly AndroidJavaObject reader;
         private readonly AndroidJavaClass Unmanaged;
-        private FrameHandler frameHandler;
 
-        [Preserve]
-        private void onFrame (AndroidJavaObject nativeBuffer, long timestamp) {
-            var pixelBuffer = (IntPtr)Unmanaged.CallStatic<long>(@"baseAddress", nativeBuffer);
-            nativeBuffer.Dispose();
-            frameHandler(pixelBuffer, timestamp);
-        }
+        #if UNITY_ANDROID && !UNITY_EDITOR
+        [DllImport(@"c")]
+        private static extern IntPtr memcpy (IntPtr dst, IntPtr src, UIntPtr size);
+        #else
+        private static IntPtr memcpy (IntPtr dst, IntPtr src, UIntPtr size) { return dst; }
+        #endif
         #endregion
     }
 }

@@ -17,25 +17,20 @@ namespace NatReader.Internal {
         @"NatReader";
         #endif
 
-        public delegate void FrameHandler (IntPtr context, IntPtr pixelBuffer, long timestamp);
-
         #if UNITY_IOS && !UNITY_EDITOR
         [DllImport(Assembly, EntryPoint = @"NRCreateFrameReader")]
-        public static extern IntPtr CreateFrameReader (string url);
-        [DllImport(Assembly, EntryPoint = @"NRStartReading")]
-        public static extern void StartReading (this IntPtr reader, FrameHandler frameHandler, IntPtr context);
+        public static extern IntPtr CreateFrameReader (string url, long startTime);
+        [DllImport(Assembly, EntryPoint = @"NRGetFrameSize")]
+        public static extern void GetFrameSize (this IntPtr reader, out int width, out int height);
+        [DllImport(Assembly, EntryPoint = @"NRCopyNextFrame")]
+        public static extern bool CopyNextFrame (this IntPtr reader, IntPtr dstBuffer, out int byteSize, out long timestamp);
         [DllImport(Assembly, EntryPoint = @"NRDispose")]
         public static extern void Dispose (this IntPtr reader);
-        [DllImport(Assembly, EntryPoint = @"NRPixelWidth")]
-        public static extern int PixelWidth (this IntPtr reader);
-        [DllImport(Assembly, EntryPoint = @"NRPixelHeight")]
-        public static extern int PixelHeight (this IntPtr reader);
         #else
-        public static IntPtr CreateFrameReader (string url) { return IntPtr.Zero; }
-        public static void StartReading (this IntPtr reader, FrameHandler frameHandler, IntPtr context) {}
+        public static IntPtr CreateFrameReader (string url, long startTime) { return IntPtr.Zero; }
+        public static void GetFrameSize (this IntPtr reader, out int width, out int height) { width = height = 0; }
+        public static bool CopyNextFrame (this IntPtr reader, IntPtr dstBuffer, out int byteSize, out long timestamp) { byteSize = 0; timestamp = 0; return false; }
         public static void Dispose (this IntPtr reader) {}
-        public static int PixelWidth (this IntPtr reader) { return 0; }
-        public static int PixelHeight (this IntPtr reader) { return 0; }
         #endif
     }
 }
