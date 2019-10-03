@@ -20,7 +20,7 @@ void NRGetFrameSize (NRFrameReader* reader, int32_t* width, int32_t* height) {
 }
 
 bool NRCopyNextFrame (id<NRMediaReader> reader, void* dstBuffer, int32_t* byteSize, int64_t* timestamp) {
-    return false;
+    return [reader copyNextFrame:dstBuffer withSize:byteSize andTimestamp:timestamp];
 }
 
 void NRDispose (void* readerPtr) {

@@ -79,7 +79,7 @@ namespace NatReader {
         }
 
         public IEnumerator<(byte[], long)> GetNextFrame () {
-            byte[] pixelBuffer = new byte[pixelWidth * pixelHeight * 4];
+            var pixelBuffer = new byte[pixelWidth * pixelHeight * 4];
             for (;;) {
                 var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
                 bool success = reader.CopyNextFrame(handle.AddrOfPinnedObject(), out var _,out var timestamp);

@@ -28,3 +28,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation project(path: ':NatRender')
 }
+
+task copyToUnity(type: Copy) {
+    from 'build/outputs/aar/NatReader-release.aar'
+    into '../../Assets/NatReader/Plugins/Android'
+}
+
+assemble.finalizedBy (copyToUnity)

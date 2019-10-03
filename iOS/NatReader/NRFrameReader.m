@@ -23,22 +23,25 @@
 @synthesize reader;
 @synthesize readerOutput;
 
-- (instancetype) initWithURI:(NSURL*) uri andStartTime:(int64_t) startTime { // INCOMPLETE // Start time
+- (instancetype) initWithURI:(NSURL*) uri andStartTime:(int64_t) startTime {
     self = super.init;
     AVAsset* asset = [AVURLAsset URLAssetWithURL:uri options:nil];
     self.videoTrack = [asset tracksWithMediaType:AVMediaTypeVideo].firstObject;
     NSError* error = nil;
-    self.reader = [AVAssetReader.alloc initWithAsset:asset error:&error];
+    AVAssetReader* reader = [AVAssetReader.alloc initWithAsset:asset error:&error];
+    AVAssetReaderTrackOutput* readerOutput = nil;
     if (!error) {
-        self.readerOutput = [AVAssetReaderTrackOutput.alloc initWithTrack:self.videoTrack outputSettings:@{ (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA) }];
-        self.readerOutput.alwaysCopiesSampleData = NO;
-        [self.reader addOutput:self.readerOutput];
-        [self.reader startReading];
+        readerOutput = [AVAssetReaderTrackOutput.alloc initWithTrack:self.videoTrack outputSettings:@{ (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA) }];
+        readerOutput.alwaysCopiesSampleData = NO;
+        [reader addOutput:readerOutput];
+        reader.timeRange = CMTimeRangeMake(CMTimeMake(startTime, 1e+9), kCMTimePositiveInfinity);
+        if (!reader.startReading)
+            NSLog(@"NatReader Error: Failed to start reading samples from asset");
     }
-    else {
+    else
         NSLog(@"NatReader Error: Failed to create asset reader for asset at %@ with error: %@", uri, error);
-        self.reader = nil;
-    }
+    self.reader = reader;
+    self.readerOutput = readerOutput;
     return self;
 }
 
