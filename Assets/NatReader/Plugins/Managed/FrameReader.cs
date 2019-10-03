@@ -17,7 +17,6 @@ namespace NatReader {
     public sealed class FrameReader : IMediaReader<(byte[], long)> {
 
         #region --Client API--
-
         /// <summary>
         /// Media pixel width
         /// </summary>
@@ -37,7 +36,7 @@ namespace NatReader {
             // Create platform-specific reader
             switch (Application.platform) {
                 case RuntimePlatform.Android: {
-                    var nativeReader = new AndroidJavaObject(@"com.olokobayusuf.natreader.FrameReader", uri);
+                    var nativeReader = new AndroidJavaObject(@"com.olokobayusuf.natreader.FrameReader", uri, startTime);
                     this.reader = new MediaReaderAndroid(nativeReader);
                     this.pixelWidth = nativeReader.Call<int>(@"pixelWidth");
                     this.pixelHeight = nativeReader.Call<int>(@"pixelHeight");
