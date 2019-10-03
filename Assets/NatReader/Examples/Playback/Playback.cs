@@ -15,7 +15,8 @@ namespace NatReader.Examples {
         public AspectRatioFitter aspectFitter;
 
         IEnumerator Start () {
-            using (var reader = new FrameReader("file://" + Application.streamingAssetsPath + "/city.mp4")) {
+            var basePath = Application.platform == RuntimePlatform.Android ? Application.persistentDataPath : Application.streamingAssetsPath;
+            using (var reader = new FrameReader("file://" + basePath + "/city.mp4")) {
                 // Create and display frame texture
                 var frameTexture = new Texture2D(reader.pixelWidth, reader.pixelHeight, TextureFormat.RGBA32, false, false);
                 rawImage.texture = frameTexture;

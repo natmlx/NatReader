@@ -18,6 +18,7 @@ import com.olokobayusuf.natrender.Unmanaged;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.Semaphore;
 
 public final class FrameReader implements MediaReader {
 
@@ -57,7 +58,7 @@ public final class FrameReader implements MediaReader {
         this.renderContextHandler = new Handler(renderContext.getLooper());
         this.pixelBuffer = ByteBuffer.allocateDirect(videoWidth * videoHeight * 4).order(ByteOrder.nativeOrder());
         // Create decoder
-        final Object completionToken = new Object();
+        final Semaphore completionToken = new Semaphore(0);
         renderContextHandler.post(new Runnable() {
             @Override
             public void run () {
@@ -74,16 +75,19 @@ public final class FrameReader implements MediaReader {
                 } catch (IOException ex) {
                     Log.e("Unity", "NatReader Error: Failed to start decoder with error: " +  ex);
                 } finally {
-                    completionToken.notifyAll();
+                    completionToken.release();
                 }
             }
         });
-        try { completionToken.wait(); } catch (InterruptedException ex) {}
+        try { completionToken.acquire(); } catch (InterruptedException ex) {}
+        Log.d("Unity", "NatReader: Created FrameReader for media at '"+uri+"' with size: "+pixelWidth()+"x"+pixelHeight());
     }
 
     @Override
     public void release () {
         extractor.release();
+        decoder.stop();
+        decoder.release();
         renderContextHandler.post(new Runnable() {
             @Override
             public void run () {
@@ -102,24 +106,9 @@ public final class FrameReader implements MediaReader {
 
     @Override
     public SampleBuffer copyNextFrame () {
-        if (decoder == null)
-            return SampleBuffer.EOS;
-        // Enqueue decoder input
-        final int bufferIndex = decoder.dequeueInputBuffer(-1L);
-        final ByteBuffer inputBuffer = decoder.getInputBuffer(bufferIndex);
-        final int dataSize = extractor.readSampleData(inputBuffer, 0);
-        if (dataSize >= 0) {
-            decoder.queueInputBuffer(bufferIndex, 0, dataSize, extractor.getSampleTime(), extractor.getSampleFlags());
-            extractor.advance();
-        } else {
-            decoder.stop();
-            decoder.release();
-            decoder = null;
-            return SampleBuffer.EOS;
-        }
-        // Perform render and readback
-        final Object renderCompletionToken = new Object();
-        final Object readbackCompletionToken = new Object();
+        // Set callbacks
+        final Semaphore renderCompletionToken = new Semaphore(0);
+        final Semaphore readbackCompletionToken = new Semaphore(0);
         final SampleBuffer sampleBuffer = new SampleBuffer();
         decoderOutputTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
@@ -136,7 +125,7 @@ public final class FrameReader implements MediaReader {
                 renderContext.setPresentationTime(surfaceTexture.getTimestamp());
                 renderContext.swapBuffers();
                 // Signal completion
-                renderCompletionToken.notifyAll();
+                renderCompletionToken.release();
             }
         }, renderContextHandler);
         imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
@@ -156,15 +145,26 @@ public final class FrameReader implements MediaReader {
                     image.close();
                 }
                 // Send to waiter
-                readbackCompletionToken.notifyAll();
+                readbackCompletionToken.release();
             }
         }, imageReaderHandler);
+        // Feed decoder until it has an output buffer
         final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-        final int outBufferIndex = decoder.dequeueOutputBuffer(bufferInfo, -1L);
+        int outBufferIndex;
+        while ((outBufferIndex = decoder.dequeueOutputBuffer(bufferInfo, 0)) < 0) {
+            final int bufferIndex = decoder.dequeueInputBuffer(-1L);
+            final ByteBuffer inputBuffer = decoder.getInputBuffer(bufferIndex);
+            final int dataSize = extractor.readSampleData(inputBuffer, 0);
+            if (dataSize >= 0) {
+                decoder.queueInputBuffer(bufferIndex, 0, dataSize, extractor.getSampleTime(), extractor.getSampleFlags());
+                extractor.advance();
+            } else
+                return SampleBuffer.EOS;
+        }
         decoder.releaseOutputBuffer(outBufferIndex, true);
         // Wait for surface texture rendering
-        try { renderCompletionToken.wait(); } catch (InterruptedException ex) {}
-        try { readbackCompletionToken.wait(); } catch (InterruptedException ex) {}
+        try { renderCompletionToken.acquire(); } catch (InterruptedException ex) {}
+        try { readbackCompletionToken.acquire(); } catch (InterruptedException ex) {}
         return sampleBuffer;
     }
 

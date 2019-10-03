@@ -18,6 +18,10 @@ namespace NatReader {
 
         #region --Client API--
         /// <summary>
+        /// Media source URI
+        /// </summary>
+        public readonly string uri;
+        /// <summary>
         /// Media pixel width
         /// </summary>
         public readonly int pixelWidth;
@@ -34,6 +38,7 @@ namespace NatReader {
         /// <param name="startTime">Media time to start reading samples in nanoseconds</param>
         public FrameReader (string uri, long startTime = 0) {
             // Create platform-specific reader
+            this.uri = uri;
             switch (Application.platform) {
                 case RuntimePlatform.Android: {
                     var nativeReader = new AndroidJavaObject(@"com.olokobayusuf.natreader.FrameReader", uri, startTime);
@@ -77,7 +82,7 @@ namespace NatReader {
             return (this as IEnumerable<(byte[], long)>).GetEnumerator();
         }
 
-        public IEnumerator<(byte[], long)> GetNextFrame () {
+        IEnumerator<(byte[], long)> GetNextFrame () {
             var pixelBuffer = new byte[pixelWidth * pixelHeight * 4];
             for (;;) {
                 var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
