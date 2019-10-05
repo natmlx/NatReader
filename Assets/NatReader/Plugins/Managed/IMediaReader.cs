@@ -12,5 +12,5 @@ namespace NatReader {
     /// A reader capable of reading media frames from a media input.
     /// All recorder methods are thread safe, and as such can be called from any thread.
     /// </summary>
-    public interface IMediaReader <T> : IDisposable, IEnumerable<T> { }
+    public interface IMediaReader <T> : IEnumerable<T>, IDisposable { }
 }
