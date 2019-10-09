@@ -20,17 +20,17 @@ namespace NatReader.Internal {
         #if UNITY_IOS && !UNITY_EDITOR
         [DllImport(Assembly, EntryPoint = @"NRCreateFrameReader")]
         public static extern IntPtr CreateFrameReader (string url, long startTime);
-        [DllImport(Assembly, EntryPoint = @"NRGetFrameSize")]
-        public static extern void GetFrameSize (this IntPtr reader, out int width, out int height);
         [DllImport(Assembly, EntryPoint = @"NRCopyNextFrame")]
         public static extern bool CopyNextFrame (this IntPtr reader, IntPtr dstBuffer, out int byteSize, out long timestamp);
         [DllImport(Assembly, EntryPoint = @"NRDispose")]
         public static extern void Dispose (this IntPtr reader);
+        [DllImport(Assembly, EntryPoint = @"NRFrameReaderGetProperties")]
+        public static extern void GetProperties (this IntPtr frameReader, out int width, out int height, out float framerate);
         #else
         public static IntPtr CreateFrameReader (string url, long startTime) { return IntPtr.Zero; }
-        public static void GetFrameSize (this IntPtr reader, out int width, out int height) { width = height = 0; }
         public static bool CopyNextFrame (this IntPtr reader, IntPtr dstBuffer, out int byteSize, out long timestamp) { byteSize = 0; timestamp = 0; return false; }
         public static void Dispose (this IntPtr reader) {}
+        public static void GetProperties (this IntPtr frameReader, out int width, out int height, out float framerate) { width = height = 0; framerate = 0; }
         #endif
     }
 }

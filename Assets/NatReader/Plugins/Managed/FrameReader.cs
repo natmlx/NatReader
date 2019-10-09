@@ -32,6 +32,11 @@ namespace NatReader {
         public readonly int pixelHeight;
 
         /// <summary>
+        /// Media frame rate
+        /// </summary>
+        public readonly float frameRate;
+
+        /// <summary>
         /// Create a frame reader
         /// </summary>
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
@@ -40,19 +45,24 @@ namespace NatReader {
             // Create platform-specific reader
             this.uri = uri;
             switch (Application.platform) {
+                case RuntimePlatform.OSXEditor:
+                case RuntimePlatform.OSXPlayer:
+                    goto case RuntimePlatform.IPhonePlayer;
+                case RuntimePlatform.IPhonePlayer: {
+                    var nativeReader = MediaReaderBridge.CreateFrameReader(uri, startTime);
+                    nativeReader.GetProperties(out var pixelWidth, out var pixelHeight, out var frameRate);
+                    this.reader = new MediaReaderiOS(nativeReader);
+                    this.pixelWidth = pixelWidth;
+                    this.pixelHeight = pixelHeight;
+                    this.frameRate = frameRate;
+                    break;
+                }
                 case RuntimePlatform.Android: {
                     var nativeReader = new AndroidJavaObject(@"com.olokobayusuf.natreader.FrameReader", uri, startTime);
                     this.reader = new MediaReaderAndroid(nativeReader);
                     this.pixelWidth = nativeReader.Call<int>(@"pixelWidth");
                     this.pixelHeight = nativeReader.Call<int>(@"pixelHeight");
-                    break;
-                }
-                case RuntimePlatform.IPhonePlayer: {
-                    var nativeReader = MediaReaderBridge.CreateFrameReader(uri, startTime);
-                    nativeReader.GetFrameSize(out var pixelWidth, out var pixelHeight);
-                    this.reader = new MediaReaderiOS(nativeReader);
-                    this.pixelWidth = pixelWidth;
-                    this.pixelHeight = pixelHeight;
+                    this.frameRate = nativeReader.Call<float>(@"frameRate");
                     break;
                 }
                 default:

@@ -49,7 +49,7 @@
 }
 
 - (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp {
-    CMSampleBufferRef sampleBuffer = self.readerOutput.copyNextSampleBuffer;
+    CMSampleBufferRef sampleBuffer = readerOutput.copyNextSampleBuffer;
     if (!sampleBuffer)
         return false;
     CVPixelBufferRef sourceBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
@@ -69,12 +69,16 @@
 }
 
 - (void) dispose {
-    [self.reader cancelReading];
-    self.reader = nil;
+    [reader cancelReading];
+    reader = nil;
 }
 
 - (CGSize) frameSize {
-    return self.videoTrack.naturalSize;
+    return videoTrack.naturalSize;
+}
+
+- (float) frameRate {
+    return videoTrack.nominalFrameRate;
 }
 
 @end

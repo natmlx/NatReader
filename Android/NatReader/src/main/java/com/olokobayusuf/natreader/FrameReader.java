@@ -8,6 +8,7 @@ import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.opengl.Matrix;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -48,6 +49,7 @@ public final class FrameReader implements MediaReader {
         final MediaFormat format = extractor.getTrackFormat(videoTrackIndex);
         final int videoWidth = format.getInteger(MediaFormat.KEY_WIDTH);
         final int videoHeight = format.getInteger(MediaFormat.KEY_HEIGHT);
+        this.frameRate = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? format.getInteger(MediaFormat.KEY_FRAME_RATE) : 30; // Default to 30
         // Setup image reader
         this.imageReaderThread.start();
         this.imageReaderHandler = new Handler(imageReaderThread.getLooper());
@@ -175,6 +177,10 @@ public final class FrameReader implements MediaReader {
     public int pixelHeight () {
         return imageReader != null ? imageReader.getHeight() : 0;
     }
+
+    public float frameRate () {
+        return frameRate;
+    }
     //endregion
 
 
@@ -193,5 +199,6 @@ public final class FrameReader implements MediaReader {
     private Surface decoderOutputSurface;
     private GLBlitEncoder blitEncoder;
     private MediaCodec decoder;
+    private float frameRate;
     //endregion
 }
