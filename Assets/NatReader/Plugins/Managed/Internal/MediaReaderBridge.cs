@@ -17,9 +17,16 @@ namespace NatReader.Internal {
         @"NatReader";
         #endif
 
-        #if UNITY_IOS && !UNITY_EDITOR
+        private const UnmanagedType StringType =
+        #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+        UnmanagedType.LPWStr;
+        #else
+        UnmanagedType.LPStr;
+        #endif
+
+        #if UNITY_EDITOR || UNITY_IOS || UNITY_STANDALONE || UNITY_WEBGL
         [DllImport(Assembly, EntryPoint = @"NRCreateFrameReader")]
-        public static extern IntPtr CreateFrameReader (string url, long startTime);
+        public static extern IntPtr CreateFrameReader ([MarshalAs(StringType)] string url, long startTime);
         [DllImport(Assembly, EntryPoint = @"NRCopyNextFrame")]
         public static extern bool CopyNextFrame (this IntPtr reader, IntPtr dstBuffer, out int byteSize, out long timestamp);
         [DllImport(Assembly, EntryPoint = @"NRDispose")]
