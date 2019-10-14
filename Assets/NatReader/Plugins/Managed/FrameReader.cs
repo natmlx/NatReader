@@ -40,10 +40,12 @@ namespace NatReader {
         /// Create a frame reader
         /// </summary>
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
-        /// <param name="startTime">Media time to start reading samples in nanoseconds</param>
-        public FrameReader (string uri, long startTime = 0) {
+        /// <param name="startTime">Optional. Media time to start reading samples in nanoseconds.</param>
+        /// <param name="copyPixelBuffers">Optional. When false, a single pixel buffer is used so that no memory allocations are made during decoding.</param>
+        public FrameReader (string uri, long startTime = 0, bool copyPixelBuffers = true) {
             // Create platform-specific reader
             this.uri = uri;
+            this.copyPixelBuffers = copyPixelBuffers;
             switch (Application.platform) {
                 case RuntimePlatform.OSXEditor:
                 case RuntimePlatform.OSXPlayer:
@@ -83,6 +85,7 @@ namespace NatReader {
         #region --Operations--
 
         private readonly INativeMediaReader reader;
+        private readonly bool copyPixelBuffers;
 
         IEnumerator<(byte[], long)> IEnumerable<(byte[], long)>.GetEnumerator() {
             return GetNextFrame();
@@ -93,13 +96,14 @@ namespace NatReader {
         }
 
         IEnumerator<(byte[], long)> GetNextFrame () {
-            var pixelBuffer = new byte[pixelWidth * pixelHeight * 4];
+            var pixelBuffer = copyPixelBuffers ? null : new byte[pixelWidth * pixelHeight * 4];
             for (;;) {
-                var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
+                var dstBuffer = pixelBuffer ?? new byte[pixelWidth * pixelHeight * 4];
+                var handle = GCHandle.Alloc(dstBuffer, GCHandleType.Pinned);
                 bool success = reader.CopyNextFrame(handle.AddrOfPinnedObject(), out var _,out var timestamp);
                 handle.Free();
                 if (success)
-                    yield return (pixelBuffer, timestamp);
+                    yield return (dstBuffer, timestamp);
                 else
                     break;
             }

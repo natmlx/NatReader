@@ -26,11 +26,11 @@ namespace NatReader.Internal {
             var sampleBuffer = reader.Call<AndroidJavaObject>(@"copyNextFrame");
             timestamp = sampleBuffer.Get<long>(@"timestamp");
             try {
-                var pixelBuffer = sampleBuffer.Get<AndroidJavaObject>(@"buffer");
-                dstSize = pixelBuffer.Call<int>(@"capacity");
-                var srcBuffer = (IntPtr)Unmanaged.CallStatic<long>(@"baseAddress", pixelBuffer);
+                var buffer = sampleBuffer.Get<AndroidJavaObject>(@"buffer");
+                dstSize = buffer.Call<int>(@"capacity");
+                var srcBuffer = (IntPtr)Unmanaged.CallStatic<long>(@"baseAddress", buffer);
                 memcpy(dstBuffer, srcBuffer, (UIntPtr)dstSize);
-                pixelBuffer.Dispose();
+                buffer.Dispose();
                 return true;
             } catch {
                 dstSize = 0;
