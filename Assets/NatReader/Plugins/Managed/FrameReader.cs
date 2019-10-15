@@ -18,42 +18,44 @@ namespace NatReader {
 
         #region --Client API--
         /// <summary>
-        /// Media source URI
+        /// Video source URI
         /// </summary>
         public readonly string uri;
+
         /// <summary>
-        /// Media pixel width
+        /// Video frame width
         /// </summary>
         public readonly int pixelWidth;
 
         /// <summary>
-        /// Media pixel height
+        /// Video frame height
         /// </summary>
         public readonly int pixelHeight;
 
         /// <summary>
-        /// Media frame rate
+        /// Video frame rate
         /// </summary>
         public readonly float frameRate;
-
+        
         /// <summary>
         /// Create a frame reader
         /// </summary>
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
-        /// <param name="startTime">Optional. Media time to start reading samples in nanoseconds.</param>
+        /// <param name="startTime">Optional. Media time to start reading samples in nanoseconds. Negative values read from end of media.</param>
         /// <param name="copyPixelBuffers">Optional. When false, a single pixel buffer is used so that no memory allocations are made during decoding.</param>
         public FrameReader (string uri, long startTime = 0, bool copyPixelBuffers = true) {
-            // Create platform-specific reader
+            // Save state
             this.uri = uri;
             this.copyPixelBuffers = copyPixelBuffers;
+            // Create platform-specific reader
             switch (Application.platform) {
                 case RuntimePlatform.OSXEditor:
                 case RuntimePlatform.OSXPlayer:
                     goto case RuntimePlatform.IPhonePlayer;
                 case RuntimePlatform.IPhonePlayer: {
-                    var nativeReader = MediaReaderBridge.CreateFrameReader(uri, startTime);
+                    var nativeReader = MediaEnumeratorBridge.CreateFrameReader(uri, startTime);
                     nativeReader.GetProperties(out var pixelWidth, out var pixelHeight, out var frameRate);
-                    this.reader = new MediaReaderiOS(nativeReader);
+                    this.enumerator = new MediaEnumeratoriOS(nativeReader);
                     this.pixelWidth = pixelWidth;
                     this.pixelHeight = pixelHeight;
                     this.frameRate = frameRate;
@@ -61,7 +63,7 @@ namespace NatReader {
                 }
                 case RuntimePlatform.Android: {
                     var nativeReader = new AndroidJavaObject(@"com.olokobayusuf.natreader.FrameReader", uri, startTime);
-                    this.reader = new MediaReaderAndroid(nativeReader);
+                    this.enumerator = new MediaEnumeratorAndroid(nativeReader);
                     this.pixelWidth = nativeReader.Call<int>(@"pixelWidth");
                     this.pixelHeight = nativeReader.Call<int>(@"pixelHeight");
                     this.frameRate = nativeReader.Call<float>(@"frameRate");
@@ -77,30 +79,30 @@ namespace NatReader {
         /// Release the reader
         /// </summary>
         public void Dispose () {
-            reader.Dispose();
+            enumerator.Dispose();
         }
         #endregion
 
 
         #region --Operations--
 
-        private readonly INativeMediaReader reader;
+        private readonly IMediaEnumerator enumerator;
         private readonly bool copyPixelBuffers;
 
         IEnumerator<(byte[], long)> IEnumerable<(byte[], long)>.GetEnumerator() {
-            return GetNextFrame();
+            return CopyNextFrame();
         }
 
         IEnumerator IEnumerable.GetEnumerator () {
             return (this as IEnumerable<(byte[], long)>).GetEnumerator();
         }
 
-        IEnumerator<(byte[], long)> GetNextFrame () {
+        IEnumerator<(byte[], long)> CopyNextFrame () {
             var pixelBuffer = copyPixelBuffers ? null : new byte[pixelWidth * pixelHeight * 4];
             for (;;) {
                 var dstBuffer = pixelBuffer ?? new byte[pixelWidth * pixelHeight * 4];
                 var handle = GCHandle.Alloc(dstBuffer, GCHandleType.Pinned);
-                bool success = reader.CopyNextFrame(handle.AddrOfPinnedObject(), out var _,out var timestamp);
+                bool success = enumerator.CopyNextFrame(handle.AddrOfPinnedObject(), out var _, out var timestamp);
                 handle.Free();
                 if (success)
                     yield return (dstBuffer, timestamp);

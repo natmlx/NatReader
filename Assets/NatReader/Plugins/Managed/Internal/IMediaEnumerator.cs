@@ -7,7 +7,7 @@ namespace NatReader.Internal {
 
     using System;
 
-    public interface INativeMediaReader : IDisposable {
+    public interface IMediaEnumerator : IDisposable {
         bool CopyNextFrame (IntPtr dstBuffer, out int byteSize, out long timestamp);
     }
 }

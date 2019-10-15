@@ -9,11 +9,11 @@ namespace NatReader.Internal {
     using System;
     using System.Runtime.InteropServices;
 
-    public sealed class MediaReaderAndroid : INativeMediaReader {
+    public sealed class MediaEnumeratorAndroid : IMediaEnumerator {
 
-        #region --IMediaReader--
+        #region --IMediaEnumerator--
 
-        public MediaReaderAndroid (AndroidJavaObject reader) {
+        public MediaEnumeratorAndroid (AndroidJavaObject reader) {
             this.reader = reader;
             this.Unmanaged = new AndroidJavaClass(@"com.olokobayusuf.natrender.Unmanaged");
         }

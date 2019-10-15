@@ -7,11 +7,11 @@ namespace NatReader.Internal {
 
     using System;
 
-    public sealed class MediaReaderiOS : INativeMediaReader {
+    public sealed class MediaEnumeratoriOS : IMediaEnumerator {
 
-        #region --INativeMediaReader--
+        #region --IMediaEnumerator--
 
-        public MediaReaderiOS (IntPtr reader) {
+        public MediaEnumeratoriOS (IntPtr reader) {
             this.reader = reader;
         }
 

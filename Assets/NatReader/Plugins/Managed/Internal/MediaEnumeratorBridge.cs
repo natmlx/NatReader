@@ -8,7 +8,7 @@ namespace NatReader.Internal {
     using System;
     using System.Runtime.InteropServices;
 
-    public static class MediaReaderBridge {
+    public static class MediaEnumeratorBridge {
 
         private const string Assembly =
         #if (UNITY_IOS || UNITY_WEBGL) && !UNITY_EDITOR
