@@ -14,7 +14,7 @@ namespace NatReader {
     /// <summary>
     /// Video frame reader.
     /// </summary>
-    public sealed class FrameReader : IMediaReader<(byte[], long)> {
+    public sealed class FrameReader : IFrameReader {
 
         #region --Client API--
         /// <summary>
@@ -25,12 +25,16 @@ namespace NatReader {
         /// <summary>
         /// Video frame width
         /// </summary>
-        public readonly int pixelWidth;
+        public int pixelWidth {
+            get; private set;
+        }
 
         /// <summary>
         /// Video frame height
         /// </summary>
-        public readonly int pixelHeight;
+        public int pixelHeight {
+            get; private set;
+        }
 
         /// <summary>
         /// Video frame rate
@@ -89,15 +93,7 @@ namespace NatReader {
         private readonly IMediaEnumerator enumerator;
         private readonly bool copyPixelBuffers;
 
-        IEnumerator<(byte[], long)> IEnumerable<(byte[], long)>.GetEnumerator() {
-            return CopyNextFrame();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator () {
-            return (this as IEnumerable<(byte[], long)>).GetEnumerator();
-        }
-
-        IEnumerator<(byte[], long)> CopyNextFrame () {
+        IEnumerator<(byte[] pixelBuffer, long timestamp)> IEnumerable<(byte[] pixelBuffer, long timestamp)>.GetEnumerator() {
             var pixelBuffer = copyPixelBuffers ? null : new byte[pixelWidth * pixelHeight * 4];
             for (;;) {
                 var dstBuffer = pixelBuffer ?? new byte[pixelWidth * pixelHeight * 4];
@@ -109,6 +105,10 @@ namespace NatReader {
                 else
                     break;
             }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator () {
+            return (this as IEnumerable<(byte[], long)>).GetEnumerator();
         }
         #endregion
     }
