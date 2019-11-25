@@ -1,6 +1,6 @@
 /* 
 *   NatReader
-*   Copyright (c) 2019 Yusuf Olokoba
+*   Copyright (c) 2019 Yusuf Olokoba.
 */
 
 namespace NatReader.Internal {
@@ -15,12 +15,10 @@ namespace NatReader.Internal {
 
         public MediaEnumeratorAndroid (AndroidJavaObject reader) {
             this.reader = reader;
-            this.Unmanaged = new AndroidJavaClass(@"com.olokobayusuf.natrender.Unmanaged");
+            this.Unmanaged = new AndroidJavaClass(@"com.natsuite.natrender.Unmanaged");
         }
 
-        public void Dispose () {
-            reader.Call(@"release");
-        }
+        public void Dispose () => reader.Call(@"release");
 
         public bool CopyNextFrame (IntPtr dstBuffer, out int dstSize, out long timestamp) {
             var sampleBuffer = reader.Call<AndroidJavaObject>(@"copyNextFrame");
@@ -51,7 +49,7 @@ namespace NatReader.Internal {
         [DllImport(@"c")]
         private static extern IntPtr memcpy (IntPtr dst, IntPtr src, UIntPtr size);
         #else
-        private static IntPtr memcpy (IntPtr dst, IntPtr src, UIntPtr size) { return dst; }
+        private static IntPtr memcpy (IntPtr dst, IntPtr src, UIntPtr size) => dst;
         #endif
         #endregion
     }

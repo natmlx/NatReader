@@ -1,4 +1,4 @@
-package com.olokobayusuf.natreader;
+package com.natsuite.natreader;
 
 import java.nio.ByteBuffer;
 

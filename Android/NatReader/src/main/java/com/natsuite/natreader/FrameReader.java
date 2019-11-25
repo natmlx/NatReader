@@ -1,4 +1,4 @@
-package com.olokobayusuf.natreader;
+package com.natsuite.natreader;
 
 import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;

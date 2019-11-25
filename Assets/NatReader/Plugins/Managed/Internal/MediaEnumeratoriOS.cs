@@ -1,6 +1,6 @@
 /* 
 *   NatReader
-*   Copyright (c) 2019 Yusuf Olokoba
+*   Copyright (c) 2019 Yusuf Olokoba.
 */
 
 namespace NatReader.Internal {
@@ -11,17 +11,11 @@ namespace NatReader.Internal {
 
         #region --IMediaEnumerator--
 
-        public MediaEnumeratoriOS (IntPtr reader) {
-            this.reader = reader;
-        }
+        public MediaEnumeratoriOS (IntPtr reader) => this.reader = reader;
 
-        public void Dispose () {
-            reader.Dispose();
-        }
+        public void Dispose () => reader.Dispose();
 
-        public bool CopyNextFrame (IntPtr dstBuffer, out int byteSize, out long timestamp) {
-            return reader.CopyNextFrame(dstBuffer, out byteSize, out timestamp);
-        }
+        public bool CopyNextFrame (IntPtr dstBuffer, out int byteSize, out long timestamp) => reader.CopyNextFrame(dstBuffer, out byteSize, out timestamp);
         #endregion
         
         private readonly IntPtr reader;

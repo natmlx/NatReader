@@ -1,6 +1,6 @@
 /* 
 *   NatReader
-*   Copyright (c) 2019 Yusuf Olokoba
+*   Copyright (c) 2019 Yusuf Olokoba.
 */
 
 namespace NatReader {
@@ -47,10 +47,9 @@ namespace NatReader {
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
         /// <param name="startTime">Optional. Media time to start reading samples in nanoseconds. Negative values read from end of media.</param>
         /// <param name="copyPixelBuffers">Optional. When false, a single pixel buffer is used so that no memory allocations are made during decoding.</param>
-        public FrameReader (string uri, long startTime = 0, bool copyPixelBuffers = true) {
+        public FrameReader (string uri, long startTime = 0) {
             // Save state
             this.uri = uri;
-            this.copyPixelBuffers = copyPixelBuffers;
             // Create platform-specific reader
             switch (Application.platform) {
                 case RuntimePlatform.OSXEditor:
@@ -66,7 +65,7 @@ namespace NatReader {
                     break;
                 }
                 case RuntimePlatform.Android: {
-                    var nativeReader = new AndroidJavaObject(@"com.olokobayusuf.natreader.FrameReader", uri, startTime);
+                    var nativeReader = new AndroidJavaObject(@"com.natsuite.natreader.FrameReader", uri, startTime);
                     this.enumerator = new MediaEnumeratorAndroid(nativeReader);
                     this.pixelWidth = nativeReader.Call<int>(@"pixelWidth");
                     this.pixelHeight = nativeReader.Call<int>(@"pixelHeight");
@@ -82,34 +81,28 @@ namespace NatReader {
         /// <summary>
         /// Release the reader
         /// </summary>
-        public void Dispose () {
-            enumerator.Dispose();
-        }
+        public void Dispose () => enumerator.Dispose();
         #endregion
 
 
         #region --Operations--
 
         private readonly IMediaEnumerator enumerator;
-        private readonly bool copyPixelBuffers;
 
         IEnumerator<(byte[] pixelBuffer, long timestamp)> IEnumerable<(byte[] pixelBuffer, long timestamp)>.GetEnumerator() {
-            var pixelBuffer = copyPixelBuffers ? null : new byte[pixelWidth * pixelHeight * 4];
+            var pixelBuffer = new byte[pixelWidth * pixelHeight * 4];
             for (;;) {
-                var dstBuffer = pixelBuffer ?? new byte[pixelWidth * pixelHeight * 4];
-                var handle = GCHandle.Alloc(dstBuffer, GCHandleType.Pinned);
+                var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
                 bool success = enumerator.CopyNextFrame(handle.AddrOfPinnedObject(), out var _, out var timestamp);
                 handle.Free();
                 if (success)
-                    yield return (dstBuffer, timestamp);
+                    yield return (pixelBuffer, timestamp);
                 else
                     break;
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator () {
-            return (this as IEnumerable<(byte[], long)>).GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator () => (this as IEnumerable<(byte[], long)>).GetEnumerator();
         #endregion
     }
 }

@@ -264,7 +264,7 @@
 				DEVELOPMENT_TEAM = NPA3XMW8F9;
 				INFOPLIST_FILE = NatReader/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				PRODUCT_BUNDLE_IDENTIFIER = com.yusufolokoba.NatReader;
+				PRODUCT_BUNDLE_IDENTIFIER = com.natsuite.NatReader;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = bundle;
@@ -279,7 +279,7 @@
 				DEVELOPMENT_TEAM = NPA3XMW8F9;
 				INFOPLIST_FILE = NatReader/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				PRODUCT_BUNDLE_IDENTIFIER = com.yusufolokoba.NatReader;
+				PRODUCT_BUNDLE_IDENTIFIER = com.natsuite.NatReader;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = bundle;
