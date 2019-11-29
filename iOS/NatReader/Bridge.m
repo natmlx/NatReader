@@ -14,7 +14,7 @@ void* NRCreateFrameReader (const char* url, int64_t startTime) {
     return (__bridge_retained void*)reader;
 }
 
-bool NRCopyNextFrame (id<NRMediaReader> reader, void* dstBuffer, int32_t* byteSize, int64_t* timestamp) {
+bool NRCopyNextFrame (id<NRMediaReader> reader, void* dstBuffer, uint32_t* byteSize, int64_t* timestamp) {
     return [reader copyNextFrame:dstBuffer withSize:byteSize andTimestamp:timestamp];
 }
 

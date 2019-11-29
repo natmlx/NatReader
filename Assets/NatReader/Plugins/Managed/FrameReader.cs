@@ -54,7 +54,8 @@ namespace NatReader {
             switch (Application.platform) {
                 case RuntimePlatform.OSXEditor:
                 case RuntimePlatform.OSXPlayer:
-                    goto case RuntimePlatform.IPhonePlayer;
+                case RuntimePlatform.WindowsEditor:
+                case RuntimePlatform.WindowsPlayer:
                 case RuntimePlatform.IPhonePlayer: {
                     var nativeReader = MediaEnumeratorBridge.CreateFrameReader(uri, startTime);
                     nativeReader.GetProperties(out var pixelWidth, out var pixelHeight, out var frameRate);

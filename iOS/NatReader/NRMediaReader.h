@@ -11,13 +11,13 @@
 
 @protocol NRMediaReader <NSObject>
 @required
-- (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
+- (bool) copyNextFrame:(void*) dstBuffer withSize:(uint32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
 - (void) dispose;
 @end
 
 @interface NRFrameReader : NSObject <NRMediaReader>
 - (instancetype) initWithURI:(NSURL*) uri andStartTime:(int64_t) startTime;
-- (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
+- (bool) copyNextFrame:(void*) dstBuffer withSize:(uint32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
 - (void) dispose;
 @property (readonly) CGSize frameSize;
 @property (readonly) float frameRate;
