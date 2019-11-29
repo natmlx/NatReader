@@ -1,11 +1,9 @@
-﻿  pch.cpp
-  Bridge.cpp
-  dllmain.cpp
+﻿  Bridge.cpp
   FrameReader.cpp
-     Creating library C:\Users\Yusuf\Documents\Projects\NatReader-API\Windows\NatReader\x64\Release\NatReader.lib and object C:\Users\Yusuf\Documents\Projects\NatReader-API\Windows\NatReader\x64\Release\NatReader.exp
+     Creating library C:\Users\Yusuf\Documents\Projects\NatReader-API\Windows\x64\Release\NatReader.lib and object C:\Users\Yusuf\Documents\Projects\NatReader-API\Windows\x64\Release\NatReader.exp
   Generating code
-  12 of 13 functions (92.3%) were compiled, the rest were copied from previous compilation.
-    12 functions were new in current compilation
+  20 of 20 functions (100.0%) were compiled.
+    8 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  NatReader.vcxproj -> C:\Users\Yusuf\Documents\Projects\NatReader-API\Windows\NatReader\x64\Release\NatReader.dll
+  NatReader.vcxproj -> C:\Users\Yusuf\Documents\Projects\NatReader-API\Windows\x64\Release\NatReader.dll

@@ -40,11 +40,11 @@ FrameReader::~FrameReader () {
 	frameReader->Release();
 }
 
-bool FrameReader::CopyNextFrame (void* dstBuffer, uint32_t* outSize, int64_t* outTimestamp) {
+bool FrameReader::CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) {
 	// Read sample
 	IMFSample* sample = nullptr;
 	DWORD flags = 0;
-	frameReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, &flags, &outTimestamp, &sample);
+	frameReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, &flags, outTimestamp, &sample);
 	// Check for EOS
 	if ((flags & MF_SOURCE_READERF_ENDOFSTREAM))
 		return false;
@@ -56,10 +56,12 @@ bool FrameReader::CopyNextFrame (void* dstBuffer, uint32_t* outSize, int64_t* ou
 	// Read pixel buffer
 	IMFMediaBuffer* sampleBuffer;
 	IMF2DBuffer* pixelBuffer;
+	DWORD bufferSize;
     sample->ConvertToContiguousBuffer(&sampleBuffer);
 	sampleBuffer->QueryInterface(IID_IMF2DBuffer, (void**)&pixelBuffer);
-	pixelBuffer->GetContiguousLength(outSize);
-	pixelBuffer->ContiguousCopyTo(dstBuffer, outSize);
+	pixelBuffer->GetContiguousLength(&bufferSize);
+	pixelBuffer->ContiguousCopyTo((uint8_t*)dstBuffer, bufferSize);
+	*outSize = bufferSize;
 	*outTimestamp = *outTimestamp * 100L;
 	// Release
 	pixelBuffer->Release();
@@ -68,7 +70,7 @@ bool FrameReader::CopyNextFrame (void* dstBuffer, uint32_t* outSize, int64_t* ou
 	return true;
 }
 
-void FrameReader::GetDimensions (int32_t* width, int32_t* height, float* framerate) {
+void FrameReader::GetDimensions (int32_t* width, int32_t* height, float* framerate) const {
 	*width = (int32_t)this->pixelWidth;
 	*height = (int32_t)this->pixelHeight;
 	*framerate = this->framerate;

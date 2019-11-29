@@ -48,7 +48,7 @@
     return self;
 }
 
-- (bool) copyNextFrame:(void*) dstBuffer withSize:(uint32_t*) outSize andTimestamp:(int64_t*) outTimestamp {
+- (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp {
     CMSampleBufferRef sampleBuffer = readerOutput.copyNextSampleBuffer;
     if (!sampleBuffer)
         return false;

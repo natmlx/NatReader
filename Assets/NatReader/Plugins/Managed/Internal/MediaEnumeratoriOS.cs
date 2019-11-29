@@ -15,7 +15,7 @@ namespace NatReader.Internal {
 
         public void Dispose () => reader.Dispose();
 
-        public bool CopyNextFrame (IntPtr dstBuffer, out uint byteSize, out long timestamp) => reader.CopyNextFrame(dstBuffer, out byteSize, out timestamp);
+        public bool CopyNextFrame (IntPtr dstBuffer, out int byteSize, out long timestamp) => reader.CopyNextFrame(dstBuffer, out byteSize, out timestamp);
         #endregion
         
         private readonly IntPtr reader;

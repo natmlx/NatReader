@@ -19,7 +19,7 @@ BRIDGE void APIENTRY NRDispose (IMediaReader* reader) {
 	delete reader;
 }
 
-BRIDGE bool APIENTRY NRCopyNextFrame (IMediaReader* reader, void* dstBuffer, uint32_t* byteSize, int64_t* timestamp) {
+BRIDGE bool APIENTRY NRCopyNextFrame (IMediaReader* reader, void* dstBuffer, int32_t* byteSize, int64_t* timestamp) {
 	return reader->CopyNextFrame(dstBuffer, byteSize, timestamp);
 }
 
