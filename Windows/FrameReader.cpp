@@ -9,7 +9,15 @@
 #include "pch.hpp"
 #include "IMediaReader.hpp"
 
-FrameReader::FrameReader (const wchar_t* uri, int64_t startTime) { // CHECK // MFStartup?
+bool FrameReader::initializedMF = false;
+
+FrameReader::FrameReader (const wchar_t* uri, int64_t startTime) {
+	// Initialize MediaFoundation
+	if (!initializedMF) {
+		CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+		MFStartup(MF_VERSION);
+		initializedMF = true;
+	}
 	// Create attributes
 	IMFAttributes* attributes = nullptr;
 	MFCreateAttributes(&attributes, 2);
@@ -33,6 +41,11 @@ FrameReader::FrameReader (const wchar_t* uri, int64_t startTime) { // CHECK // M
 	outputFormat->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
 	frameReader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, outputFormat);
 	outputFormat->Release();
+	outputFormat = nullptr;
+	// Get stride
+	frameReader->GetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, &outputFormat);
+	rowStride = outputFormat->GetUINT32(MF_MT_DEFAULT_STRIDE, &rowStride) < 0 ? pixelWidth * 4 : rowStride;
+	outputFormat->Release();
 }
 
 FrameReader::~FrameReader () {
@@ -54,17 +67,26 @@ bool FrameReader::CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* out
 		return true;
 	}
 	// Read pixel buffer
-	IMFMediaBuffer* sampleBuffer;
-	IMF2DBuffer* pixelBuffer;
-	DWORD bufferSize;
+	IMFMediaBuffer* sampleBuffer = nullptr;
+	IMF2DBuffer* pixelBuffer = nullptr;
+	DWORD bufferSize = 0;
     sample->ConvertToContiguousBuffer(&sampleBuffer);
 	sampleBuffer->QueryInterface(IID_IMF2DBuffer, (void**)&pixelBuffer);
-	pixelBuffer->GetContiguousLength(&bufferSize);
-	pixelBuffer->ContiguousCopyTo((uint8_t*)dstBuffer, bufferSize);
+	if (pixelBuffer) {
+		pixelBuffer->GetContiguousLength(&bufferSize);
+		pixelBuffer->ContiguousCopyTo((uint8_t*)dstBuffer, bufferSize);
+		pixelBuffer->Release();
+	}
+	else {
+		uint8_t* baseAddress;
+		sampleBuffer->Lock(&baseAddress, nullptr, nullptr);
+		MFCopyImage((uint8_t*)dstBuffer, pixelWidth * 4, baseAddress, rowStride, pixelWidth * 4, pixelHeight); // INCOMPLETE // This crashes
+		sampleBuffer->Unlock();
+		bufferSize = pixelWidth * pixelHeight * 4;
+	}
 	*outSize = bufferSize;
 	*outTimestamp = *outTimestamp * 100L;
 	// Release
-	pixelBuffer->Release();
 	sampleBuffer->Release();
     sample->Release();
 	return true;

@@ -31,7 +31,8 @@ class FrameReader : public IMediaReader {
 		bool CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) override;
 		void GetDimensions (int32_t* width, int32_t* height, float* framerate) const;
 	private:
+		static bool initializedMF;
 		IMFSourceReader* frameReader;
-		uint32_t pixelWidth, pixelHeight;
+		uint32_t pixelWidth, pixelHeight, rowStride;
 		float framerate;
 };
