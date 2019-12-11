@@ -12,13 +12,13 @@ namespace NatReader {
     public interface IFrameReader : IMediaReader<(byte[] pixelBuffer, long timestamp)> {
 
         /// <summary>
-        /// Video frame width
+        /// Video size
         /// </summary>
-        int pixelWidth { get; }
+        (int width, int height) frameSize { get; }
 
         /// <summary>
-        /// Video frame height
+        /// Frame rate
         /// </summary>
-        int pixelHeight { get; }
+        float frameRate { get; }
     }
 }

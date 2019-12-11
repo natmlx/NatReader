@@ -23,23 +23,18 @@ namespace NatReader {
         public readonly string uri;
 
         /// <summary>
-        /// Video frame width
+        /// Video size
         /// </summary>
-        public int pixelWidth {
-            get; private set;
-        }
-
-        /// <summary>
-        /// Video frame height
-        /// </summary>
-        public int pixelHeight {
+        public (int width, int height) frameSize {
             get; private set;
         }
 
         /// <summary>
         /// Video frame rate
         /// </summary>
-        public readonly float frameRate;
+        public float frameRate {
+            get; private set;
+        }
         
         /// <summary>
         /// Create a frame reader
@@ -60,16 +55,14 @@ namespace NatReader {
                     var nativeReader = MediaEnumeratorBridge.CreateFrameReader(uri, startTime);
                     nativeReader.GetProperties(out var pixelWidth, out var pixelHeight, out var frameRate);
                     this.enumerator = new MediaEnumeratoriOS(nativeReader);
-                    this.pixelWidth = pixelWidth;
-                    this.pixelHeight = pixelHeight;
+                    this.frameSize = (pixelWidth, pixelHeight);
                     this.frameRate = frameRate;
                     break;
                 }
                 case RuntimePlatform.Android: {
                     var nativeReader = new AndroidJavaObject(@"com.natsuite.natreader.FrameReader", uri, startTime);
                     this.enumerator = new MediaEnumeratorAndroid(nativeReader);
-                    this.pixelWidth = nativeReader.Call<int>(@"pixelWidth");
-                    this.pixelHeight = nativeReader.Call<int>(@"pixelHeight");
+                    this.frameSize = (nativeReader.Call<int>(@"pixelWidth"), nativeReader.Call<int>(@"pixelHeight"));
                     this.frameRate = nativeReader.Call<float>(@"frameRate");
                     break;
                 }
@@ -91,7 +84,7 @@ namespace NatReader {
         private readonly IMediaEnumerator enumerator;
 
         IEnumerator<(byte[] pixelBuffer, long timestamp)> IEnumerable<(byte[] pixelBuffer, long timestamp)>.GetEnumerator() {
-            var pixelBuffer = new byte[pixelWidth * pixelHeight * 4];
+            var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];
             for (;;) {
                 var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
                 bool success = enumerator.CopyNextFrame(handle.AddrOfPinnedObject(), out var _, out var timestamp);
