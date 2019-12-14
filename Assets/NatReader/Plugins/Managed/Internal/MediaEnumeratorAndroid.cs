@@ -20,7 +20,7 @@ namespace NatReader.Internal {
 
         public void Dispose () => reader.Call(@"release");
 
-        public bool CopyNextFrame (IntPtr dstBuffer, out int dstSize, out long timestamp) {
+        public bool CopyNextFrame (IntPtr dstBuffer, out int dstSize, out long timestamp) { // INCOMPLETE // Use Unmanaged instead of memcpy // Also use direct pointer instead of ByteBuffer
             var sampleBuffer = reader.Call<AndroidJavaObject>(@"copyNextFrame");
             timestamp = sampleBuffer.Get<long>(@"timestamp");
             try {
