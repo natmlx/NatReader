@@ -1,4 +1,4 @@
-package com.natsuite.natreader;
+package api.natsuite.natreader;
 
 import java.nio.ByteBuffer;
 

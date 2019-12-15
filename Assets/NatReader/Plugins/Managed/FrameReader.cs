@@ -60,7 +60,7 @@ namespace NatReader {
                     break;
                 }
                 case RuntimePlatform.Android: {
-                    var nativeReader = new AndroidJavaObject(@"com.natsuite.natreader.FrameReader", uri, startTime);
+                    var nativeReader = new AndroidJavaObject(@"api.natsuite.natreader.FrameReader", uri, startTime);
                     this.enumerator = new MediaEnumeratorAndroid(nativeReader);
                     this.frameSize = (nativeReader.Call<int>(@"pixelWidth"), nativeReader.Call<int>(@"pixelHeight"));
                     this.frameRate = nativeReader.Call<float>(@"frameRate");

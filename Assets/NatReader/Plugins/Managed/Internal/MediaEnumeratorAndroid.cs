@@ -15,7 +15,7 @@ namespace NatReader.Internal {
 
         public MediaEnumeratorAndroid (AndroidJavaObject reader) {
             this.reader = reader;
-            this.Unmanaged = new AndroidJavaClass(@"com.natsuite.natrender.Unmanaged");
+            this.Unmanaged = new AndroidJavaClass(@"api.natsuite.natrender.Unmanaged");
         }
 
         public void Dispose () => reader.Call(@"release");

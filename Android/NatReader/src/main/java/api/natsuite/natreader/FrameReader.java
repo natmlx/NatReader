@@ -1,4 +1,4 @@
-package com.natsuite.natreader;
+package api.natsuite.natreader;
 
 import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
@@ -13,9 +13,9 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
-import com.natsuite.natrender.GLBlitEncoder;
-import com.natsuite.natrender.GLRenderContext;
-import com.natsuite.natrender.Unmanaged;
+import api.natsuite.natrender.GLBlitEncoder;
+import api.natsuite.natrender.GLRenderContext;
+import api.natsuite.natrender.Unmanaged;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
