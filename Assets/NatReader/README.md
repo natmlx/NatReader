@@ -4,7 +4,7 @@ NatReader is a lightweight video decoding API designed for transcoding applicati
 ## Usage
 Simply create a frame reader then iterate through the frames within it:
 ```csharp
-using (var reader = new FrameReader("file://path/to/some/video.mp4"))
+using (var reader = new FrameReader("file:///path/to/some/video.mp4"))
     foreach (var (pixelBuffer, timestamp) in reader) {
         // `pixelBuffer` is a `byte[]` with the frame pixel data in RGBA32 layout
         // `timestamp` is the frame timestamp in nanoseconds

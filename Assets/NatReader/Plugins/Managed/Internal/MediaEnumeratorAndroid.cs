@@ -7,7 +7,6 @@ namespace NatReader.Internal {
 
     using UnityEngine;
     using System;
-    using System.Runtime.InteropServices;
 
     public sealed class MediaEnumeratorAndroid : IMediaEnumerator {
 
@@ -20,37 +19,19 @@ namespace NatReader.Internal {
 
         public void Dispose () => reader.Call(@"release");
 
-        public bool CopyNextFrame (IntPtr dstBuffer, out int dstSize, out long timestamp) { // INCOMPLETE // Use Unmanaged instead of memcpy // Also use direct pointer instead of ByteBuffer
-            var sampleBuffer = reader.Call<AndroidJavaObject>(@"copyNextFrame");
-            timestamp = sampleBuffer.Get<long>(@"timestamp");
-            try {
-                var buffer = sampleBuffer.Get<AndroidJavaObject>(@"buffer");
-                dstSize = buffer.Call<int>(@"capacity");
-                var srcBuffer = (IntPtr)Unmanaged.CallStatic<long>(@"baseAddress", buffer);
-                memcpy(dstBuffer, srcBuffer, (UIntPtr)dstSize);
-                buffer.Dispose();
-                return true;
-            } catch {
-                dstSize = 0;
-                return false;
-            } finally {
-                sampleBuffer.Dispose();
+        public bool CopyNextFrame (IntPtr dstBuffer, out int dstSize, out long timestamp) { // DEPLOY
+            using (var pixelBuffer = Unmanaged.CallStatic<AndroidJavaObject>(@"wrapBuffer", (long)dstBuffer, IntPtr.Size)) {
+                timestamp = reader.Call<long>(@"copyNextFrame", pixelBuffer);
+                dstSize = pixelBuffer.Call<int>(@"limit");
+                return timestamp > 0;
             }
         }
         #endregion
 
 
         #region --Operations--
-
         private readonly AndroidJavaObject reader;
         private readonly AndroidJavaClass Unmanaged;
-
-        #if UNITY_ANDROID && !UNITY_EDITOR
-        [DllImport(@"c")]
-        private static extern IntPtr memcpy (IntPtr dst, IntPtr src, UIntPtr size);
-        #else
-        private static IntPtr memcpy (IntPtr dst, IntPtr src, UIntPtr size) => dst;
-        #endif
         #endregion
     }
 }

@@ -18,7 +18,6 @@ import api.natsuite.natrender.GLRenderContext;
 import api.natsuite.natrender.Unmanaged;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.concurrent.Semaphore;
 
 public final class FrameReader implements MediaReader {
@@ -58,7 +57,6 @@ public final class FrameReader implements MediaReader {
         this.renderContext = new GLRenderContext(null, imageReader.getSurface(), false);
         this.renderContext.start();
         this.renderContextHandler = new Handler(renderContext.getLooper());
-        this.pixelBuffer = ByteBuffer.allocateDirect(videoWidth * videoHeight * 4).order(ByteOrder.nativeOrder());
         // Create decoder
         final Semaphore completionToken = new Semaphore(0);
         renderContextHandler.post(new Runnable() {
@@ -103,15 +101,15 @@ public final class FrameReader implements MediaReader {
         try { renderContext.join(); } catch (InterruptedException ex) {}
         imageReader.close();
         imageReaderThread.quitSafely();
-        pixelBuffer = null;
     }
 
     @Override
-    public SampleBuffer copyNextFrame () {
+    public long copyNextFrame (final ByteBuffer dstBuffer) {
         // Set callbacks
         final Semaphore renderCompletionToken = new Semaphore(0);
         final Semaphore readbackCompletionToken = new Semaphore(0);
-        final SampleBuffer sampleBuffer = new SampleBuffer();
+        final class Timestamp { long value = -1L; }
+        final Timestamp timestamp = new Timestamp();
         decoderOutputTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
             public void onFrameAvailable (SurfaceTexture surfaceTexture) {
@@ -141,9 +139,10 @@ public final class FrameReader implements MediaReader {
                     final int width = image.getWidth();
                     final int height = image.getHeight();
                     final int stride = imagePlane.getRowStride();
-                    Unmanaged.copyFrame(Unmanaged.baseAddress(sourceBuffer), width, height, stride, Unmanaged.baseAddress(pixelBuffer));
-                    sampleBuffer.buffer = pixelBuffer;
-                    sampleBuffer.timestamp = image.getTimestamp();
+                    Unmanaged.copyFrame(Unmanaged.baseAddress(sourceBuffer), width, height, stride, Unmanaged.baseAddress(dstBuffer));
+                    dstBuffer.rewind();
+                    dstBuffer.limit(width * height * 4);
+                    timestamp.value = image.getTimestamp();
                     image.close();
                 }
                 // Send to waiter
@@ -160,14 +159,13 @@ public final class FrameReader implements MediaReader {
             if (dataSize >= 0) {
                 decoder.queueInputBuffer(bufferIndex, 0, dataSize, extractor.getSampleTime(), extractor.getSampleFlags());
                 extractor.advance();
-            } else
-                return SampleBuffer.EOS;
+            } else return -1;
         }
         decoder.releaseOutputBuffer(outBufferIndex, true);
         // Wait for surface texture rendering
         try { renderCompletionToken.acquire(); } catch (InterruptedException ex) {}
         try { readbackCompletionToken.acquire(); } catch (InterruptedException ex) {}
-        return sampleBuffer;
+        return timestamp.value;
     }
 
     public int pixelWidth () {
@@ -185,14 +183,12 @@ public final class FrameReader implements MediaReader {
 
 
     //region --Operations--
-
     private final MediaExtractor extractor;
     private final HandlerThread imageReaderThread = new HandlerThread("FrameReader");
     private ImageReader imageReader;
     private Handler imageReaderHandler;
     private GLRenderContext renderContext;
     private Handler renderContextHandler;
-    private ByteBuffer pixelBuffer;
 
     private int decoderOutputTextureID;
     private SurfaceTexture decoderOutputTexture;
