@@ -11,8 +11,8 @@
 
 #define BRIDGE extern "C" __declspec(dllexport)
 
-BRIDGE void* APIENTRY NRCreateFrameReader (const wchar_t* recordingPath, int64_t startTime) {
-	return static_cast<void*>(new FrameReader(recordingPath, startTime));
+BRIDGE void* APIENTRY NRCreateFrameReader (const wchar_t* recordingPath, float startTime, float duration) {
+	return static_cast<void*>(new FrameReader(recordingPath, startTime, duration));
 }
 
 BRIDGE void APIENTRY NRDispose (IMediaReader* reader) {

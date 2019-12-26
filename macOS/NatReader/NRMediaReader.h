@@ -16,7 +16,7 @@
 @end
 
 @interface NRFrameReader : NSObject <NRMediaReader>
-- (instancetype) initWithURI:(NSURL*) uri andStartTime:(int64_t) startTime;
+- (instancetype) initWithURI:(NSURL*) uri startTime:(float) startTime andDuration:(float) duration;
 - (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
 - (void) dispose;
 @property (readonly) CGSize frameSize;

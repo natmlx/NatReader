@@ -26,7 +26,7 @@ class IMediaReader {
 
 class FrameReader : public IMediaReader {
 	public:
-		FrameReader (const wchar_t* uri, int64_t startTime);
+		FrameReader (const wchar_t* uri, float startTime, float duration);
 		~FrameReader ();
 		bool CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) override;
 		void GetDimensions (int32_t* width, int32_t* height, float* framerate) const;
@@ -35,4 +35,5 @@ class FrameReader : public IMediaReader {
 		IMFSourceReader* frameReader;
 		uint32_t pixelWidth, pixelHeight, rowStride;
 		float framerate;
+		int64_t endTimestamp;
 };

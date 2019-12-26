@@ -26,7 +26,7 @@ namespace NatReader.Internal {
 
         #if UNITY_EDITOR || UNITY_IOS || UNITY_STANDALONE || UNITY_WEBGL
         [DllImport(Assembly, EntryPoint = @"NRCreateFrameReader")]
-        public static extern IntPtr CreateFrameReader ([MarshalAs(StringType)] string url, long startTime);
+        public static extern IntPtr CreateFrameReader ([MarshalAs(StringType)] string url, float startTime, float duration);
         [DllImport(Assembly, EntryPoint = @"NRCopyNextFrame")]
         public static extern bool CopyNextFrame (this IntPtr reader, IntPtr dstBuffer, out int byteSize, out long timestamp);
         [DllImport(Assembly, EntryPoint = @"NRDispose")]
@@ -35,7 +35,7 @@ namespace NatReader.Internal {
         public static extern void GetProperties (this IntPtr frameReader, out int width, out int height, out float framerate);
         #else
         
-        public static IntPtr CreateFrameReader (string url, long startTime) => IntPtr.Zero;
+        public static IntPtr CreateFrameReader (string url, float startTime, float duration) => IntPtr.Zero;
         public static bool CopyNextFrame (this IntPtr reader, IntPtr dstBuffer, out int byteSize, out long timestamp) { byteSize = 0; timestamp = 0; return false; }
         public static void Dispose (this IntPtr reader) { }
         public static void GetProperties (this IntPtr frameReader, out int width, out int height, out float framerate) { width = height = 0; framerate = 0; }

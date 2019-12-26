@@ -11,7 +11,7 @@
 
 bool FrameReader::initializedMF = false;
 
-FrameReader::FrameReader (const wchar_t* uri, int64_t startTime) {
+FrameReader::FrameReader (const wchar_t* uri, float startTime, float duration) {
 	// Initialize MediaFoundation
 	if (!initializedMF) {
 		CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
@@ -26,6 +26,20 @@ FrameReader::FrameReader (const wchar_t* uri, int64_t startTime) {
 	// Create source reader
 	MFCreateSourceReaderFromURL(uri, attributes, &frameReader);
 	attributes->Release();
+	// Get duration
+	PROPVARIANT variant;
+	PropVariantInit(&variant);
+   	frameReader->GetPresentationAttribute(MF_SOURCE_READER_FIRST_VIDEO_STREAM, MF_PD_DURATION, &variant);
+	int64_t videoDuration;
+	PropVariantToInt64(variant, &videoDuration);
+	PropVariantClear(&variant);
+	// Seek
+	int64_t startTimestamp = (int64_t)(startTime * 1e+7);
+	startTimestamp = startTimestamp < 0 ? videoDuration + startTimestamp : startTimestamp;
+	InitPropVariantFromInt64(startTimestamp, &variant);
+    frameReader->SetCurrentPosition(GUID_NULL, variant);
+    PropVariantClear(&variant);
+    endTimestamp = duration > 0 ? startTimestamp + (int64_t)(duration * 1e+7) : INT64_MAX;
 	// Inspect video
 	IMFMediaType* videoFormat = nullptr;
 	uint32_t numerator, denominator;
@@ -53,12 +67,14 @@ FrameReader::~FrameReader () {
 	frameReader->Release();
 }
 
-bool FrameReader::CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) {
+bool FrameReader::CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) { // INCOMPLETE // Prevent propagating emtpy sample that isn't EOS
 	// Read sample
 	IMFSample* sample = nullptr;
 	DWORD flags = 0;
 	frameReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, &flags, outTimestamp, &sample);
 	// Check for EOS
+	if (outTimestamp > endTimestamp)
+		return false;
 	if ((flags & MF_SOURCE_READERF_ENDOFSTREAM))
 		return false;
 	// Check empty sample

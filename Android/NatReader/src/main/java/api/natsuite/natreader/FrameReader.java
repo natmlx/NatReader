@@ -24,28 +24,22 @@ public final class FrameReader implements MediaReader {
 
     //region --Client API--
 
-    public FrameReader (String uri, long startTime) {
+    public FrameReader (String uri, float startTime, float duration) {
         // Setup extractor
         this.extractor = new MediaExtractor();
         try {
             extractor.setDataSource(uri);
-            extractor.seekTo((long)(startTime / 1e+3), MediaExtractor.SEEK_TO_CLOSEST_SYNC);
         } catch (IOException ex) {
             Log.e("Unity", "NatReader Error: Failed to create media extractor with error: " + ex);
             return;
         }
-        int videoTrackIndex = -1;
-        for (int i = 0; i < extractor.getTrackCount(); i++)
-            if (extractor.getTrackFormat(i).getString(MediaFormat.KEY_MIME).startsWith("video/")) {
-                videoTrackIndex = i;
-                break;
-            }
-        if (videoTrackIndex == -1) {
-            Log.e("Unity", "NatReader Error: Failed to find video track in media file");
-            return;
-        }
-        extractor.selectTrack(videoTrackIndex);
-        final MediaFormat format = extractor.getTrackFormat(videoTrackIndex);
+        // Seek
+        final MediaFormat format = videoFormat(extractor);
+        long startTimeUs = (long)(startTime * 1e+6);
+        startTimeUs = startTimeUs < 0 ? format.getLong(MediaFormat.KEY_DURATION) - startTimeUs : startTimeUs;
+        extractor.seekTo(startTimeUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+        endTimestamp = duration > 0 ? startTimeUs + (long)(duration * 1e+6) : Long.MAX_VALUE;
+        // Inspect
         final int videoWidth = format.getInteger(MediaFormat.KEY_WIDTH);
         final int videoHeight = format.getInteger(MediaFormat.KEY_HEIGHT);
         this.frameRate = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? format.getInteger(MediaFormat.KEY_FRAME_RATE) : 30; // Default to 30
@@ -156,8 +150,9 @@ public final class FrameReader implements MediaReader {
             final int bufferIndex = decoder.dequeueInputBuffer(-1L);
             final ByteBuffer inputBuffer = decoder.getInputBuffer(bufferIndex);
             final int dataSize = extractor.readSampleData(inputBuffer, 0);
-            if (dataSize >= 0) {
-                decoder.queueInputBuffer(bufferIndex, 0, dataSize, extractor.getSampleTime(), extractor.getSampleFlags());
+            final long sampleTime = extractor.getSampleTime();
+            if (dataSize >= 0 && endTimestamp > sampleTime) {
+                decoder.queueInputBuffer(bufferIndex, 0, dataSize, sampleTime, extractor.getSampleFlags());
                 extractor.advance();
             } else return -1;
         }
@@ -183,8 +178,10 @@ public final class FrameReader implements MediaReader {
 
 
     //region --Operations--
+
     private final MediaExtractor extractor;
     private final HandlerThread imageReaderThread = new HandlerThread("FrameReader");
+    private long endTimestamp;
     private ImageReader imageReader;
     private Handler imageReaderHandler;
     private GLRenderContext renderContext;
@@ -196,5 +193,19 @@ public final class FrameReader implements MediaReader {
     private GLBlitEncoder blitEncoder;
     private MediaCodec decoder;
     private float frameRate;
+
+    private static MediaFormat videoFormat (MediaExtractor extractor) {
+        // Search
+        for (int i = 0; i < extractor.getTrackCount(); i++) {
+            final MediaFormat format = extractor.getTrackFormat(i);
+            if (format.getString(MediaFormat.KEY_MIME).startsWith("video/")) {
+                extractor.selectTrack(i);
+                return format;
+            }
+        }
+        // Failed
+        Log.e("Unity", "NatReader Error: Failed to find video track in media file");
+        return null;
+    }
     //endregion
 }
