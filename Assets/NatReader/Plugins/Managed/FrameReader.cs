@@ -1,6 +1,6 @@
 /* 
 *   NatReader
-*   Copyright (c) 2019 Yusuf Olokoba.
+*   Copyright (c) 2020 Yusuf Olokoba.
 */
 
 namespace NatReader {
@@ -18,26 +18,26 @@ namespace NatReader {
 
         #region --Client API--
         /// <summary>
-        /// Video source URI
+        /// Video source URI.
         /// </summary>
         public readonly string uri;
 
         /// <summary>
-        /// Video size
+        /// Frame size.
         /// </summary>
         public (int width, int height) frameSize {
             get; private set;
         }
 
         /// <summary>
-        /// Video frame rate
+        /// Frame rate.
         /// </summary>
         public float frameRate {
             get; private set;
         }
         
         /// <summary>
-        /// Create a frame reader
+        /// Create a frame reader.
         /// </summary>
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
         /// <param name="startTime">Optional. Media time to start reading samples in seconds. Negative values read from end of media.</param>
@@ -73,7 +73,7 @@ namespace NatReader {
         }
         
         /// <summary>
-        /// Release the reader
+        /// Release the reader.
         /// </summary>
         public void Dispose () => enumerator.Dispose();
         #endregion

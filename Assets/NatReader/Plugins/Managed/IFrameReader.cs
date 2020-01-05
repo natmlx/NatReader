@@ -1,6 +1,6 @@
 /* 
 *   NatReader
-*   Copyright (c) 2019 Yusuf Olokoba.
+*   Copyright (c) 2020 Yusuf Olokoba.
 */
 
 namespace NatReader {
@@ -12,12 +12,12 @@ namespace NatReader {
     public interface IFrameReader : IMediaReader<(byte[] pixelBuffer, long timestamp)> {
 
         /// <summary>
-        /// Video size
+        /// Frame size.
         /// </summary>
         (int width, int height) frameSize { get; }
 
         /// <summary>
-        /// Frame rate
+        /// Frame rate.
         /// </summary>
         float frameRate { get; }
     }
