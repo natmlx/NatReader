@@ -16,7 +16,7 @@ namespace NatReader.Examples {
 
         IEnumerator Start () {
             var basePath = Application.platform == RuntimePlatform.Android ? Application.persistentDataPath : Application.streamingAssetsPath;
-            using (var reader = new FrameReader("file://" + basePath + "/city.mp4")) {
+            using (var reader = new MP4FrameReader("file://" + basePath + "/city.mp4")) {
                 // Create and display frame texture
                 var frameTexture = new Texture2D(reader.frameSize.width, reader.frameSize.height, TextureFormat.RGBA32, false, false);
                 rawImage.texture = frameTexture;
