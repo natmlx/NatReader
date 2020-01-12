@@ -54,15 +54,15 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\NatReader\Examples\Playback\Playback.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\FrameReader.cs" />
      <Compile Include="Assets\NatReader\Plugins\Managed\IFrameReader.cs" />
      <Compile Include="Assets\NatReader\Plugins\Managed\IMediaReader.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\IMediaEnumerator.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\MediaEnumeratorAndroid.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\MediaEnumeratorBridge.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\MediaEnumeratoriOS.cs" />
+     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\NativeBridge.cs" />
+     <Compile Include="Assets\NatReader\Plugins\Managed\MP4FrameReader.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>/Users/yusuf/Documents/Projects/NatReader-API/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.PackageManagerUI.Editor">
+ <HintPath>/Users/yusuf/Documents/Projects/NatReader-API/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
  </Reference>
  <Reference Include="Unity.CollabProxy.Editor">
  <HintPath>/Users/yusuf/Documents/Projects/NatReader-API/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
@@ -72,9 +72,6 @@
  </Reference>
  <Reference Include="Unity.Analytics.DataPrivacy">
  <HintPath>/Users/yusuf/Documents/Projects/NatReader-API/Library/ScriptAssemblies/Unity.Analytics.DataPrivacy.dll</HintPath>
- </Reference>
- <Reference Include="Unity.PackageManagerUI.Editor">
- <HintPath>/Users/yusuf/Documents/Projects/NatReader-API/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.AIModule">
  <HintPath>/Applications/Unity/Unity.app/Contents/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>

@@ -10,20 +10,20 @@
 @import CoreVideo;
 
 @protocol NRMediaReader <NSObject>
-@property (readonly) NSString* uri;
-@property (readonly) float duration; // INCOMPLETE // Check type
-- (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
+@property (readonly) NSURL* uri;
+@property (readonly) float duration;
+- (void) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
 - (void) reset;
 - (void) dispose;
 @end
 
 @interface NRMP4FrameReader : NSObject <NRMediaReader>
-@property (readonly) NSString* uri;
-@property (readonly) float duration; // INCOMPLETE // Check type
 - (instancetype) initWithURI:(NSURL*) uri startTime:(float) startTime andDuration:(float) duration;
-- (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
+- (void) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
 - (void) reset;
 - (void) dispose;
+@property (readonly) NSURL* uri;
+@property (readonly) float duration;
 @property (readonly) CGSize frameSize;
 @property (readonly) float frameRate;
 @end

@@ -10,50 +10,68 @@
 @import AVFoundation;
 #import "NRMediaReader.h"
 
-@interface NRFrameReader ()
+@interface NRMP4FrameReader ()
+@property NSURL* uri;
+@property CMTimeRange timeRange;
+@property AVAsset* asset;
 @property AVAssetTrack* videoTrack;
 @property AVAssetReader* reader;
 @property AVAssetReaderTrackOutput* readerOutput;
 @end
 
 
-@implementation NRFrameReader
+@implementation NRMP4FrameReader
 
+@synthesize uri;
+@synthesize timeRange;
+@synthesize asset;
 @synthesize videoTrack;
 @synthesize reader;
 @synthesize readerOutput;
 
-- (instancetype) initWithURI:(NSURL*) uri startTime:(float) startTime andDuration:(float) duration { // INCOMPLETE // Negative start time
+- (instancetype) initWithURI:(NSURL*) uri startTime:(float) startTime andDuration:(float) duration {
     self = super.init;
-    AVAsset* asset = [AVURLAsset URLAssetWithURL:uri options:nil];
-    self.videoTrack = [asset tracksWithMediaType:AVMediaTypeVideo].firstObject;
     NSError* error = nil;
-    AVAssetReader* reader = [AVAssetReader.alloc initWithAsset:asset error:&error];
-    AVAssetReaderTrackOutput* readerOutput = nil;
+    self.uri = uri;
+    self.timeRange = CMTimeRangeMake(CMTimeMakeWithSeconds(startTime, NSEC_PER_SEC), CMTimeMakeWithSeconds(duration, NSEC_PER_SEC));
+    self.asset = [AVURLAsset URLAssetWithURL:uri options:nil];
+    self.videoTrack = [asset tracksWithMediaType:AVMediaTypeVideo].firstObject;
+    self.reader = [AVAssetReader.alloc initWithAsset:asset error:&error];
     if (!error) {
-        readerOutput = [AVAssetReaderTrackOutput.alloc initWithTrack:self.videoTrack outputSettings:@{ (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA) }];
+        self.readerOutput = [AVAssetReaderTrackOutput.alloc initWithTrack:videoTrack outputSettings:@{ (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA) }];
         readerOutput.alwaysCopiesSampleData = NO;
+        readerOutput.supportsRandomAccess = YES;
         [reader addOutput:readerOutput];
-        CMTime rangeStart = CMTimeMakeWithSeconds(startTime, NSEC_PER_SEC);
-        CMTime rangeEnd = duration > 0 ? CMTimeMakeWithSeconds(startTime + duration, NSEC_PER_SEC) : kCMTimePositiveInfinity;
-        reader.timeRange = CMTimeRangeMake(rangeStart, rangeEnd);
+        reader.timeRange = timeRange;
         if (reader.startReading)
-            NSLog(@"NatReader: Created FrameReader for media at '%@' with size %fx%f", uri, videoTrack.naturalSize.width, videoTrack.naturalSize.height);
+            NSLog(@"NatReader: Created MP4FrameReader for media at '%@' with size %fx%f", uri, videoTrack.naturalSize.width, videoTrack.naturalSize.height);
         else
-            NSLog(@"NatReader Error: Failed to start reading samples from asset at '%@'", uri);
-            
+            NSLog(@"NatReader Error: MP4FrameReader failed to start reading samples from asset at '%@'", uri);
     }
     else
-        NSLog(@"NatReader Error: Failed to create asset reader for asset at '%@' with error: %@", uri, error);
-    self.reader = reader;
-    self.readerOutput = readerOutput;
+        NSLog(@"NatReader Error: MP4FrameReader failed to create asset reader for asset at '%@' with error: %@", uri, error);
     return self;
 }
 
-- (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp {
+- (float) duration {
+    return CMTimeGetSeconds(asset.duration);
+}
+
+- (CGSize) frameSize {
+    return videoTrack.naturalSize;
+}
+
+- (float) frameRate {
+    return videoTrack.nominalFrameRate;
+}
+
+- (void) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp {
     CMSampleBufferRef sampleBuffer = readerOutput.copyNextSampleBuffer;
-    if (!sampleBuffer)
-        return false;
+    if (!sampleBuffer) {
+        *outSize = 0;
+        *outTimestamp = -1L;
+        return;
+    }
     CVPixelBufferRef sourceBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
     *outTimestamp = (int64_t)(CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) * 1e+9);
     CVPixelBufferLockBaseAddress(sourceBuffer, kCVPixelBufferLock_ReadOnly);
@@ -67,20 +85,16 @@
     vImagePermuteChannels_ARGB8888(&input, &output, (uint8_t[4]){ 2, 1, 0, 3 }, kvImageNoFlags);
     CVPixelBufferUnlockBaseAddress(sourceBuffer, kCVPixelBufferLock_ReadOnly);
     CFRelease(sampleBuffer);
-    return true;
+}
+
+- (void) reset {
+    [readerOutput resetForReadingTimeRanges:@[[NSValue valueWithCMTimeRange:timeRange]]];
 }
 
 - (void) dispose {
+    [readerOutput markConfigurationAsFinal];
     [reader cancelReading];
     reader = nil;
-}
-
-- (CGSize) frameSize {
-    return videoTrack.naturalSize;
-}
-
-- (float) frameRate {
-    return videoTrack.nominalFrameRate;
 }
 
 @end

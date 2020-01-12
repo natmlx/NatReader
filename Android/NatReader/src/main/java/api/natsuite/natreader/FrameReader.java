@@ -11,4 +11,9 @@ public interface FrameReader extends MediaReader {
      * Frame height.
      */
     int frameHeight ();
+
+    /**
+     * Frame rate.
+     */
+    float frameRate ();
 }

@@ -25,7 +25,7 @@ namespace NatReader.Internal {
         [DllImport(Assembly, EntryPoint = @"NRMediaDuration")]
         public static extern float Duration (this IntPtr reader);
         [DllImport(Assembly, EntryPoint = @"NRCopyNextFrame")]
-        public static extern bool CopyNextFrame (this IntPtr reader, IntPtr buffer, out int bufferSize, out long timestamp);
+        public static extern void CopyNextFrame (this IntPtr reader, IntPtr buffer, out int bufferSize, out long timestamp);
         [DllImport(Assembly, EntryPoint = @"NRReset")]
         public static extern void Reset (this IntPtr reader);
         [DllImport(Assembly, EntryPoint = @"NRDispose")]

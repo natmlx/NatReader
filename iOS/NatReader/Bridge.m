@@ -17,11 +17,12 @@ void* NRCreateFrameReader (const char* url, float startTime, float duration) {
 
 void NRMediaURI (void* readerPtr, char* dstString) {
     id<NRMediaReader> reader = (__bridge id<NRMediaReader>)readerPtr;
+    strcpy(dstString, reader.uri.absoluteString.UTF8String);
 }
 
 float NRMediaDuration (void* readerPtr) {
     id<NRMediaReader> reader = (__bridge id<NRMediaReader>)readerPtr;
-    return 0;
+    return reader.duration;
 }
 
 void NRCopyNextFrame (void* readerPtr, void* buffer, int32_t* bufferSize, int64_t* timestamp) {

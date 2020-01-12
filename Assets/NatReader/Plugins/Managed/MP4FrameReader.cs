@@ -55,7 +55,7 @@ namespace NatReader {
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
         /// <param name="startTime">Optional. Media time to start reading samples in seconds.</param>
         /// <param name="duration">Optional. Duration in seconds.</param>
-        public MP4FrameReader (string uri, float startTime = 0f, float duration = float.PositiveInfinity) => this.reader = NativeBridge.CreateMP4FrameReader(uri, startTime, duration);
+        public MP4FrameReader (string uri, float startTime = 0f, float duration = 1e+6f) => this.reader = NativeBridge.CreateMP4FrameReader(uri, startTime, duration);
         
         /// <summary>
         /// Dispose the reader and release resources.
@@ -71,10 +71,13 @@ namespace NatReader {
         IEnumerator<(byte[] pixelBuffer, long timestamp)> IEnumerable<(byte[] pixelBuffer, long timestamp)>.GetEnumerator() {
             var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];
             for (;;) {
+                // Copy
                 var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
-                bool success = reader.CopyNextFrame(handle.AddrOfPinnedObject(), out var _, out var timestamp);
+                var bufferSize = pixelBuffer.Length; // In-out param
+                reader.CopyNextFrame(handle.AddrOfPinnedObject(), out bufferSize, out var timestamp);
                 handle.Free();
-                if (success)
+                // Check success
+                if (timestamp >= 0L) // CHECK // Switch on timestamp or buffer size??
                     yield return (pixelBuffer, timestamp);
                 else
                     break;
