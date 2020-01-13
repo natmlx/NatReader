@@ -3,7 +3,7 @@
 //  NatReader
 //
 //  Created by Yusuf Olokoba on 11/15/19.
-//  Copyright (c) 2019 Yusuf Olokoba. All rights reserved.
+//  Copyright (c) 2020 Yusuf Olokoba. All rights reserved.
 //
 
 #pragma once
@@ -20,16 +20,23 @@
 
 class IMediaReader {
 	public:
-		virtual ~IMediaReader () {};
-		virtual bool CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) = 0;
+		virtual ~IMediaReader () { }
+		virtual float Duration () = 0;
+		virtual void CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) = 0;
+		virtual void Reset () = 0;
+		const std::string uri;
 };
 
-class FrameReader : public IMediaReader {
+class MP4FrameReader : public IMediaReader {
 	public:
 		FrameReader (const wchar_t* uri, float startTime, float duration);
 		~FrameReader ();
-		bool CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) override;
-		void GetDimensions (int32_t* width, int32_t* height, float* framerate) const;
+		void Duration () override;
+		void CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) override;
+		void Reset () override;
+		int32_t FrameWidth () const;
+		int32_t FrameHeight () const;
+		float FrameRate () const;
 	private:
 		static bool initializedMF;
 		IMFSourceReader* frameReader;

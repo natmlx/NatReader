@@ -3,15 +3,15 @@
 //  NatReader
 //
 //  Created by Yusuf Olokoba on 11/15/19.
-//  Copyright (c) 2019 Yusuf Olokoba. All rights reserved.
+//  Copyright (c) 2020 Yusuf Olokoba. All rights reserved.
 //
 
 #include "pch.hpp"
 #include "IMediaReader.hpp"
 
-bool FrameReader::initializedMF = false;
+bool MP4FrameReader::initializedMF = false;
 
-FrameReader::FrameReader (const wchar_t* uri, float startTime, float duration) {
+MP4FrameReader::MP4FrameReader (const wchar_t* uri, float startTime, float duration) {
 	// Initialize MediaFoundation
 	if (!initializedMF) {
 		CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
@@ -62,12 +62,12 @@ FrameReader::FrameReader (const wchar_t* uri, float startTime, float duration) {
 	outputFormat->Release();
 }
 
-FrameReader::~FrameReader () {
+MP4FrameReader::~MP4FrameReader () {
 	// Release frame reader
 	frameReader->Release();
 }
 
-bool FrameReader::CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) { // INCOMPLETE // Prevent propagating emtpy sample that isn't EOS
+bool MP4FrameReader::CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* outTimestamp) { // INCOMPLETE // Prevent propagating emtpy sample that isn't EOS
 	// Read sample
 	IMFSample* sample = nullptr;
 	DWORD flags = 0;
@@ -108,7 +108,7 @@ bool FrameReader::CopyNextFrame (void* dstBuffer, int32_t* outSize, int64_t* out
 	return true;
 }
 
-void FrameReader::GetDimensions (int32_t* width, int32_t* height, float* framerate) const {
+void MP4FrameReader::GetDimensions (int32_t* width, int32_t* height, float* framerate) const {
 	*width = (int32_t)this->pixelWidth;
 	*height = (int32_t)this->pixelHeight;
 	*framerate = this->framerate;

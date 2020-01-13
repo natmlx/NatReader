@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8868FADE233924CD002902FE /* NRFrameReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8868FADD233924CD002902FE /* NRFrameReader.m */; };
+		8868FADE233924CD002902FE /* NRMP4FrameReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8868FADD233924CD002902FE /* NRMP4FrameReader.m */; };
 		8868FAE6233924DC002902FE /* Bridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 8868FAE5233924DC002902FE /* Bridge.m */; };
 		8868FAE7233929FB002902FE /* libNatReader.a in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8868FAD9233924CD002902FE /* libNatReader.a */; };
 /* End PBXBuildFile section */
@@ -28,7 +28,7 @@
 /* Begin PBXFileReference section */
 		8868FAD9233924CD002902FE /* libNatReader.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libNatReader.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8868FADC233924CD002902FE /* NRMediaReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NRMediaReader.h; sourceTree = "<group>"; };
-		8868FADD233924CD002902FE /* NRFrameReader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NRFrameReader.m; sourceTree = "<group>"; };
+		8868FADD233924CD002902FE /* NRMP4FrameReader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NRMP4FrameReader.m; sourceTree = "<group>"; };
 		8868FAE5233924DC002902FE /* Bridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Bridge.m; sourceTree = "<group>"; };
 		888546BB23CB58D000A137BC /* NatReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NatReader.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -64,7 +64,7 @@
 			isa = PBXGroup;
 			children = (
 				8868FADC233924CD002902FE /* NRMediaReader.h */,
-				8868FADD233924CD002902FE /* NRFrameReader.m */,
+				8868FADD233924CD002902FE /* NRMP4FrameReader.m */,
 				8868FAE5233924DC002902FE /* Bridge.m */,
 				888546BB23CB58D000A137BC /* NatReader.h */,
 			);
@@ -129,7 +129,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8868FAE6233924DC002902FE /* Bridge.m in Sources */,
-				8868FADE233924CD002902FE /* NRFrameReader.m in Sources */,
+				8868FADE233924CD002902FE /* NRMP4FrameReader.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

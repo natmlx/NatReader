@@ -153,7 +153,7 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
-    Android: com.olokobayusuf.natreaderapp
+    Android: app.natsuite.natreader
     iOS: com.olokobayuisuf.natreaderapp
   buildNumber: {}
   AndroidBundleVersionCode: 1
@@ -371,7 +371,7 @@ PlayerSettings:
     m_DynamicBatching: 0
   m_BuildTargetGraphicsAPIs:
   - m_BuildTarget: AndroidPlayer
-    m_APIs: 0b00000008000000
+    m_APIs: 150000000b00000008000000
     m_Automatic: 1
   - m_BuildTarget: iOSSupport
     m_APIs: 10000000

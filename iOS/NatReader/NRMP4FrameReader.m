@@ -1,9 +1,9 @@
 //
-//  NRFrameReader.m
+//  NRMP4FrameReader.m
 //  NatReader
 //
 //  Created by Yusuf Olokoba on 9/23/19.
-//  Copyright © 2019 Yusuf Olokoba. All rights reserved.
+//  Copyright © 2020 Yusuf Olokoba. All rights reserved.
 //
 
 @import Accelerate;
@@ -30,8 +30,8 @@
 @synthesize readerOutput;
 
 - (instancetype) initWithURI:(NSURL*) uri startTime:(float) startTime andDuration:(float) duration {
-    self = super.init;
     NSError* error = nil;
+    self = super.init;
     self.uri = uri;
     self.timeRange = CMTimeRangeMake(CMTimeMakeWithSeconds(startTime, NSEC_PER_SEC), CMTimeMakeWithSeconds(duration, NSEC_PER_SEC));
     self.asset = [AVURLAsset URLAssetWithURL:uri options:nil];

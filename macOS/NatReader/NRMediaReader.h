@@ -3,22 +3,27 @@
 //  NatReader
 //
 //  Created by Yusuf Olokoba on 10/3/19.
-//  Copyright © 2019 Yusuf Olokoba. All rights reserved.
+//  Copyright © 2020 Yusuf Olokoba. All rights reserved.
 //
 
 @import Foundation;
 @import CoreVideo;
 
 @protocol NRMediaReader <NSObject>
-@required
-- (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
+@property (readonly) NSURL* uri;
+@property (readonly) float duration;
+- (void) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
+- (void) reset;
 - (void) dispose;
 @end
 
-@interface NRFrameReader : NSObject <NRMediaReader>
+@interface NRMP4FrameReader : NSObject <NRMediaReader>
 - (instancetype) initWithURI:(NSURL*) uri startTime:(float) startTime andDuration:(float) duration;
-- (bool) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
+- (void) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outSize andTimestamp:(int64_t*) outTimestamp;
+- (void) reset;
 - (void) dispose;
+@property (readonly) NSURL* uri;
+@property (readonly) float duration;
 @property (readonly) CGSize frameSize;
 @property (readonly) float frameRate;
 @end

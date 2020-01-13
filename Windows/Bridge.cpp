@@ -3,26 +3,49 @@
 // 	NatReader
 //
 //  Created by Yusuf Olokoba on 11/15/19.
-//  Copyright (c) 2019 Yusuf Olokoba. All rights reserved.
+//  Copyright (c) 2020 Yusuf Olokoba. All rights reserved.
 //
 
 #include "pch.hpp"
+#include "NatReader.h"
 #include "IMediaReader.hpp"
 
-#define BRIDGE extern "C" __declspec(dllexport)
-
-BRIDGE void* APIENTRY NRCreateFrameReader (const wchar_t* recordingPath, float startTime, float duration) {
-	return static_cast<void*>(new FrameReader(recordingPath, startTime, duration));
+void* NRCreateMP4FrameReader (const char* recordingPath, float startTime, float duration) {
+	return static_cast<void*>(new MP4FrameReader(recordingPath, startTime, duration));
 }
 
-BRIDGE void APIENTRY NRDispose (IMediaReader* reader) {
+void NRMediaURI (void* readerPtr, char* dstString) {
+	IMediaReader* reader = static_cast<IMediaReader*>(readerPtr);
+	strcpy(dstString, reader->uri);
+}
+
+float NRMediaDuration (void* readerPtr) {
+	IMediaReader* reader = static_cast<IMediaReader*>(readerPtr);
+	return reader->Duration();
+}
+
+void NRCopyNextFrame (void* readerPtr, void* dstBuffer, int32_t* byteSize, int64_t* timestamp) {
+	IMediaReader* reader = static_cast<IMediaReader*>(readerPtr);
+	reader->CopyNextFrame(dstBuffer, byteSize, timestamp);
+}
+
+void NRReset (void* readerPtr) {
+	IMediaReader* reader = static_cast<IMediaReader*>(readerPtr);
+	reader->Reset();
+}
+
+void NRDispose (void* readerPtr) {
+	IMediaReader* reader = static_cast<IMediaReader*>(readerPtr);
 	delete reader;
 }
 
-BRIDGE bool APIENTRY NRCopyNextFrame (IMediaReader* reader, void* dstBuffer, int32_t* byteSize, int64_t* timestamp) {
-	return reader->CopyNextFrame(dstBuffer, byteSize, timestamp);
+void NRFrameSize (void* readerPtr, int32_t* width, int32_t* height) {
+	MP4FrameReader* reader = static_cast<MP4FrameReader*>(readerPtr);
+	*width = reader->FrameWidth();
+	*height = reader->FrameHeight();
 }
 
-BRIDGE void APIENTRY NRFrameReaderGetProperties (FrameReader* reader, int32_t* width, int32_t* height, float* framerate) {
-	reader->GetDimensions(width, height, framerate);
+float NRFrameRate (void* readerPtr) {
+	MP4FrameReader* reader = static_cast<MP4FrameReader*>(readerPtr);
+	return reader->FrameRate();
 }

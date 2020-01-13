@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		88C8AA872346B8A2006B6FE3 /* Bridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C8AA862346B8A2006B6FE3 /* Bridge.m */; };
-		88C8AA8A2346B8D0006B6FE3 /* NRFrameReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C8AA892346B8D0006B6FE3 /* NRFrameReader.m */; };
+		88C8AA8A2346B8D0006B6FE3 /* NRMP4FrameReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C8AA892346B8D0006B6FE3 /* NRMP4FrameReader.m */; };
 		88C8AA8C2346B96C006B6FE3 /* NatReader.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 88C8AA7D2346B88F006B6FE3 /* NatReader.bundle */; };
 /* End PBXBuildFile section */
 
@@ -31,7 +31,7 @@
 		88C8AA802346B88F006B6FE3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		88C8AA862346B8A2006B6FE3 /* Bridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Bridge.m; sourceTree = "<group>"; };
 		88C8AA882346B8D0006B6FE3 /* NRMediaReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NRMediaReader.h; sourceTree = "<group>"; };
-		88C8AA892346B8D0006B6FE3 /* NRFrameReader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NRFrameReader.m; sourceTree = "<group>"; };
+		88C8AA892346B8D0006B6FE3 /* NRMP4FrameReader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NRMP4FrameReader.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,7 +67,7 @@
 				88C8AA802346B88F006B6FE3 /* Info.plist */,
 				88C8AA862346B8A2006B6FE3 /* Bridge.m */,
 				88C8AA882346B8D0006B6FE3 /* NRMediaReader.h */,
-				88C8AA892346B8D0006B6FE3 /* NRFrameReader.m */,
+				88C8AA892346B8D0006B6FE3 /* NRMP4FrameReader.m */,
 				888546BC23CB626800A137BC /* NatReader.h */,
 			);
 			path = NatReader;
@@ -142,7 +142,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				88C8AA872346B8A2006B6FE3 /* Bridge.m in Sources */,
-				88C8AA8A2346B8D0006B6FE3 /* NRFrameReader.m in Sources */,
+				88C8AA8A2346B8D0006B6FE3 /* NRMP4FrameReader.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

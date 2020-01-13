@@ -15,12 +15,14 @@ namespace NatReader {
     /// <summary>
     /// MP4 video frame reader.
     /// </summary>
+    [Doc(@"MP4FrameReader")]
     public sealed class MP4FrameReader : IFrameReader {
 
         #region --Client API--
         /// <summary>
         /// Media source URI.
         /// </summary>
+        [Doc(@"URI")]
         public string uri {
             get {
                 var result = new StringBuilder(1024);
@@ -32,11 +34,13 @@ namespace NatReader {
         /// <summary>
         /// Media duration in seconds.
         /// </summary>
+        [Doc(@"Duration")]
         public float duration => reader.Duration();
 
         /// <summary>
         /// Frame size.
         /// </summary>
+        [Doc(@"FrameSize")]
         public (int width, int height) frameSize {
             get {
                 reader.FrameSize(out var width, out var height);
@@ -47,6 +51,7 @@ namespace NatReader {
         /// <summary>
         /// Frame rate.
         /// </summary>
+        [Doc(@"FrameRate")]
         public float frameRate => reader.FrameRate();
         
         /// <summary>
@@ -55,11 +60,13 @@ namespace NatReader {
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
         /// <param name="startTime">Optional. Media time to start reading samples in seconds.</param>
         /// <param name="duration">Optional. Duration in seconds.</param>
-        public MP4FrameReader (string uri, float startTime = 0f, float duration = 1e+6f) => this.reader = NativeBridge.CreateMP4FrameReader(uri, startTime, duration);
+        [Doc(@"MP4FrameReaderCtor")]
+        public MP4FrameReader (string uri, float startTime = 0f, float duration = 1e+6f) => this.reader = Bridge.CreateMP4FrameReader(uri, startTime, duration);
         
         /// <summary>
         /// Dispose the reader and release resources.
         /// </summary>
+        [Doc(@"Dispose")]
         public void Dispose () => reader.Dispose();
         #endregion
 

@@ -9,7 +9,7 @@ namespace NatReader.Internal {
     using System.Runtime.InteropServices;
     using System.Text;
 
-    public static class NativeBridge {
+    public static class Bridge {
 
         private const string Assembly =
         #if (UNITY_IOS || UNITY_WEBGL) && !UNITY_EDITOR

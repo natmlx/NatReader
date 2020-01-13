@@ -3,13 +3,13 @@
 //  NatReader
 //
 //  Created by Yusuf Olokoba on 9/23/19.
-//  Copyright © 2019 Yusuf Olokoba. All rights reserved.
+//  Copyright © 2020 Yusuf Olokoba. All rights reserved.
 //
 
 #import "NatReader.h"
 #import "NRMediaReader.h"
 
-void* NRCreateFrameReader (const char* url, float startTime, float duration) {
+void* NRCreateMP4FrameReader (const char* url, float startTime, float duration) {
     NSURL* uri = [NSURL URLWithString:[NSString stringWithUTF8String:url]];
     NRMP4FrameReader* reader = [NRMP4FrameReader.alloc initWithURI:uri startTime:startTime andDuration:duration];
     return (__bridge_retained void*)reader;

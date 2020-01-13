@@ -56,7 +56,8 @@
      <Compile Include="Assets\NatReader\Examples\Playback\Playback.cs" />
      <Compile Include="Assets\NatReader\Plugins\Managed\IFrameReader.cs" />
      <Compile Include="Assets\NatReader\Plugins\Managed\IMediaReader.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\NativeBridge.cs" />
+     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\Bridge.cs" />
+     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\Docs.cs" />
      <Compile Include="Assets\NatReader\Plugins\Managed\MP4FrameReader.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>/Users/yusuf/Documents/Projects/NatReader-API/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
