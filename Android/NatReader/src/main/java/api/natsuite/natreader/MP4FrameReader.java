@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.Surface;
 import api.natsuite.natrender.GLBlitEncoder;
 import api.natsuite.natrender.GLRenderContext;
-import api.natsuite.natrender.Unmanaged;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Semaphore;
@@ -132,11 +131,11 @@ public final class MP4FrameReader implements FrameReader {
                     final Image image = imageReader.acquireLatestImage();
                     if (image != null) {
                         final Image.Plane imagePlane = image.getPlanes()[0];
-                        final ByteBuffer sourceBuffer = imagePlane.getBuffer();
+                        final ByteBuffer srcBuffer = imagePlane.getBuffer();
                         final int width = image.getWidth();
                         final int height = image.getHeight();
                         final int stride = imagePlane.getRowStride();
-                        Unmanaged.copyFrame(Unmanaged.baseAddress(sourceBuffer), width, height, stride, Unmanaged.baseAddress(dstBuffer));
+                        GLBlitEncoder.copyFrame(srcBuffer, width, height, stride, dstBuffer);
                         dstBuffer.rewind();
                         dstBuffer.limit(width * height * 4);
                         timestamp.value = image.getTimestamp();
