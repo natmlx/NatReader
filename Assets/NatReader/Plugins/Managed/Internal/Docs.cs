@@ -5,7 +5,7 @@
 
 //#define DOC_GEN // Internal. Do not use
 
-namespace NatReader.Internal {
+namespace NatSuite.Readers.Internal {
 
     using System;
     #if DOC_GEN

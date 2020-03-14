@@ -3,11 +3,12 @@
 *   Copyright (c) 2020 Yusuf Olokoba
 */
 
-namespace NatReader.Examples {
+namespace NatSuite.Examples {
 
     using UnityEngine;
     using UnityEngine.UI;
     using System.Collections;
+    using Readers;
 
     public class Playback : MonoBehaviour {
 

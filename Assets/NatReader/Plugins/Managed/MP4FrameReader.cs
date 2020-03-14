@@ -3,7 +3,7 @@
 *   Copyright (c) 2020 Yusuf Olokoba.
 */
 
-namespace NatReader {
+namespace NatSuite.Readers {
 
     using System;
     using System.Collections;
