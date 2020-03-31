@@ -73,7 +73,7 @@ namespace NatSuite.Readers {
         /// <param name="duration">Optional. Duration in seconds.</param>
         [Doc(@"Read")]
         public IEnumerable<(byte[] pixelBuffer, long timestamp)> Read (float startTime = 0, float duration = -1) {
-            var enumerator = reader.GetEnumerator(startTime, Math.Max(duration, this.duration));
+            var enumerator = reader.GetEnumerator(startTime, duration > 0 ? duration : this.duration);
             var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];
             for (;;) {
                 var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
