@@ -14,7 +14,7 @@ namespace NatSuite.Readers {
     /// All recorder methods are thread safe, and as such can be called from any thread.
     /// </summary>
     [Doc(@"IMediaReader")]
-    public interface IMediaReader <T> : IEnumerable<T>, IDisposable {
+    public interface IMediaReader <T> : IDisposable {
 
         /// <summary>
         /// Media source URI.
@@ -27,6 +27,14 @@ namespace NatSuite.Readers {
         /// </summary>
         [Doc(@"Duration")]
         float duration { get; }
+
+        /// <summary>
+        /// Read frames in a time range.
+        /// </summary>
+        /// <param name="startTime">Optional. Time to start reading samples in seconds.</param>
+        /// <param name="duration">Optional. Duration in seconds.</param>
+        [Doc(@"Read")]
+        IEnumerable<T> Read (float startTime = 0, float duration = -1);
     }
 
     /// <summary>

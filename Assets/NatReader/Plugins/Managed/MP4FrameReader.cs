@@ -6,7 +6,6 @@
 namespace NatSuite.Readers {
 
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Runtime.InteropServices;
     using System.Text;
@@ -58,41 +57,36 @@ namespace NatSuite.Readers {
         /// Create an MP4 frame reader.
         /// </summary>
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
-        /// <param name="startTime">Optional. Media time to start reading samples in seconds.</param>
-        /// <param name="duration">Optional. Duration in seconds.</param>
         [Doc(@"MP4FrameReaderCtor")]
-        public MP4FrameReader (string uri, float startTime = 0f, float duration = 1e+6f) => this.reader = Bridge.CreateMP4FrameReader(uri, startTime, duration);
+        public MP4FrameReader (string uri) => this.reader = Bridge.CreateMP4FrameReader(uri);
         
         /// <summary>
         /// Dispose the reader and release resources.
         /// </summary>
         [Doc(@"Dispose")]
         public void Dispose () => reader.Dispose();
-        #endregion
 
-
-        #region --Operations--
-
-        private readonly IntPtr reader;
-
-        IEnumerator<(byte[] pixelBuffer, long timestamp)> IEnumerable<(byte[] pixelBuffer, long timestamp)>.GetEnumerator() {
+        /// <summary>
+        /// Read frames in a time range.
+        /// </summary>
+        /// <param name="startTime">Optional. Time to start reading samples in seconds.</param>
+        /// <param name="duration">Optional. Duration in seconds.</param>
+        [Doc(@"Read")]
+        public IEnumerable<(byte[] pixelBuffer, long timestamp)> Read (float startTime = 0, float duration = -1) {
+            var enumerator = reader.GetEnumerator(startTime, Math.Max(duration, this.duration));
             var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];
             for (;;) {
-                // Copy
                 var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
-                var bufferSize = pixelBuffer.Length; // In-out param
-                reader.CopyNextFrame(handle.AddrOfPinnedObject(), out bufferSize, out var timestamp);
+                enumerator.CopyNextFrame(handle.AddrOfPinnedObject(), out var _, out var timestamp);
                 handle.Free();
-                // Check success
-                if (timestamp >= 0L) // CHECK // Switch on timestamp or buffer size??
-                    yield return (pixelBuffer, timestamp);
-                else
+                if (timestamp < 0L)
                     break;
+                yield return (pixelBuffer, timestamp);
             }
-            reader.Reset();
+            enumerator.DisposeEnumerator();
         }
-
-        IEnumerator IEnumerable.GetEnumerator () => (this as IEnumerable<(byte[], long)>).GetEnumerator();
         #endregion
+
+        private readonly IntPtr reader;
     }
 }
