@@ -19,7 +19,7 @@ namespace NatSuite.Examples {
             var basePath = Application.platform == RuntimePlatform.Android ? Application.persistentDataPath : Application.streamingAssetsPath;
             var videoPath = "file://" + basePath + "/city.mp4";
             using (var reader = new MP4FrameReader(videoPath)) {
-                Debug.Log($"Duration: {reader.duration} Size: {reader.frameSize} Framerate: {reader.frameRate} URI: {reader.uri}");
+                Debug.Log($"Frame: {reader.frameSize}@{reader.frameRate} Duration: {reader.duration} URI: {reader.uri}");
                 // Create and display frame texture
                 var frameTexture = new Texture2D(reader.frameSize.width, reader.frameSize.height, TextureFormat.RGBA32, false, false);
                 rawImage.texture = frameTexture;
