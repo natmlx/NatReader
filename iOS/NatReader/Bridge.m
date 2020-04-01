@@ -55,7 +55,7 @@ void NRDisposeEnumerator (void* enumeratorPtr) {
     [enumerator dispose];
 }
 
-void NRCopyNextFrame (void* enumeratorPtr, void* buffer, int32_t* outBufferSize, int64_t* outTimestamp) { // INCOMPLETE
+void NRCopyNextFrame (void* enumeratorPtr, void* buffer, int32_t* outBufferSize, int64_t* outTimestamp) {
     id<NRMediaEnumerator> enumerator = (__bridge id<NRMediaEnumerator>)enumeratorPtr;
     [enumerator copyNextFrame:buffer withSize:outBufferSize andTimestamp:outTimestamp];
 }
