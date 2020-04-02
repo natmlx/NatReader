@@ -52,7 +52,7 @@ public final class MP4FrameReader implements FrameReader {
 
     @Override
     public MediaEnumerator createEnumerator (float startTime, float duration) {
-        return new FrameEnumerator2(extractor, format, startTime, duration);
+        return format != null ? new FrameEnumerator2(extractor, format, startTime, duration) : null;
     }
 
     @Override

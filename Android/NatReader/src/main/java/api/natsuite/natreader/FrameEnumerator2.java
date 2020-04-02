@@ -118,21 +118,27 @@ final class FrameEnumerator2 implements MediaEnumerator { // INCOMPLETE // DEPLO
 
     @Override
     public long copyNextFrame (final ByteBuffer dstBuffer) {
-        try { readFence.acquire(); } catch (InterruptedException ex) { }
-        feedFence.release();
-        final Image image = imageReader.acquireLatestImage();
-        if (image == null) {
-            dstBuffer.limit(0);
+        try {
+            readFence.acquire();
+            feedFence.release();
+            final Image image = imageReader.acquireLatestImage();
+            if (image == null) {
+                dstBuffer.limit(0);
+                return -1L;
+            }
+            final Image.Plane imagePlane = image.getPlanes()[0];
+            final ByteBuffer srcBuffer = imagePlane.getBuffer();
+            final long timestamp = image.getTimestamp();
+            Log.d("NatSuite", "capacity: "+dstBuffer.capacity()+" pos: "+dstBuffer.position()+" lim: "+dstBuffer.limit());
+            GLBlitEncoder.copyFrame(srcBuffer, image.getWidth(), image.getHeight(), imagePlane.getRowStride(), dstBuffer);
+            dstBuffer.rewind();
+            dstBuffer.limit(image.getWidth() * image.getHeight() * 4);
+            image.close();
+            return timestamp;
+        } catch (Exception ex) {
+            Log.e("NatSuite", "FrameEnumerator encountered error when copying frame", ex);
             return -1L;
         }
-        final Image.Plane imagePlane = image.getPlanes()[0];
-        final ByteBuffer srcBuffer = imagePlane.getBuffer();
-        final long timestamp = image.getTimestamp();
-        GLBlitEncoder.copyFrame(srcBuffer, image.getWidth(), image.getHeight(), imagePlane.getRowStride(), dstBuffer);
-        dstBuffer.rewind();
-        dstBuffer.limit(image.getWidth() * image.getHeight() * 4);
-        image.close();
-        return timestamp;
     }
 
     public void release () {
