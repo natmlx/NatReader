@@ -1,7 +1,5 @@
 package api.natsuite.natreader;
 
-import java.nio.ByteBuffer;
-
 public interface MediaReader {
 
     /**
@@ -15,16 +13,11 @@ public interface MediaReader {
     float duration ();
 
     /**
-     * Copy a frame into a destination buffer.
-     * @param destination Destination buffer. The limit will be set to the number of bytes copied.
-     * @return Timestamp of the frame, or -1 for EOS.
+     * Create an enumerator for reading media samples from the reader
+     * @param startTime Read start time in seconds.
+     * @param duration Read duration in seconds.
      */
-    long copyNextFrame (ByteBuffer destination);
-
-    /**
-     * Reset the media reader to start reading from the beginning of the media source.
-     */
-    void reset ();
+    MediaEnumerator createEnumerator (float startTime, float duration);
 
     /**
      * Release the reader and any resources.

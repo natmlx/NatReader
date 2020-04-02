@@ -13,20 +13,17 @@
 
 static JNIEnv* GetEnv ();
 
-#pragma region --NatReader--
+#pragma region --Bridge--
 
-void* NRCreateMP4FrameReader (const char* uri, float startTime, float duration) {
+void NRDisposeReader (void* readerPtr) {
     // Get Java environment
     JNIEnv* env = GetEnv();
     if (!env)
-        return nullptr;
-    // Create reader
-    jstring path = env->NewStringUTF(uri);
-    jclass clazz = env->FindClass("api/natsuite/natreader/MP4FrameReader");
-    jmethodID constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;FF)V");
-    jobject object = env->NewObject(clazz, constructor, path, startTime, duration);
-    jobject reader = env->NewGlobalRef(object);
-    return static_cast<void*>(reader);
+        return;
+    // Release
+    jobject reader = static_cast<jobject>(readerPtr);
+    jmethodID method = env->GetMethodID(env->GetObjectClass(reader), "release", "()V");
+    env->CallVoidMethod(reader, method);
 }
 
 void NRMediaURI (void* readerPtr, char* dstString) {
@@ -53,42 +50,18 @@ float NRMediaDuration (void* readerPtr) {
     return env->CallFloatMethod(reader, method);
 }
 
-void NRCopyNextFrame (void* readerPtr, void* buffer, int32_t* outBufferSize, int64_t* outTimestamp) {
-    // Get Java environment
-    JNIEnv* env = GetEnv();
-    if (!env) {
-        *outBufferSize = 0;
-        *outTimestamp = 0L;
-        return;
-    }
-    // Copy next frame
-    jobject byteBuffer = env->NewDirectByteBuffer(buffer, (jlong)*outBufferSize);
-    jobject reader = static_cast<jobject>(readerPtr);
-    jmethodID method = env->GetMethodID(env->GetObjectClass(reader), "copyNextFrame", "(Ljava/nio/ByteBuffer;)J");
-    *outTimestamp = env->CallLongMethod(reader, method, byteBuffer);
-    *outBufferSize = env->CallIntMethod(byteBuffer, env->GetMethodID(env->GetObjectClass(byteBuffer), "limit", "()I"));
-}
-
-void NRReset (void* readerPtr) {
+void* NRCreateMP4FrameReader (const char* uri) {
     // Get Java environment
     JNIEnv* env = GetEnv();
     if (!env)
-        return;
-    // Reset
-    jobject reader = static_cast<jobject>(readerPtr);
-    jmethodID method = env->GetMethodID(env->GetObjectClass(reader), "reset", "()V");
-    env->CallVoidMethod(reader, method);
-}
-
-void NRDispose (void* readerPtr) {
-    // Get Java environment
-    JNIEnv* env = GetEnv();
-    if (!env)
-        return;
-    // Release
-    jobject reader = static_cast<jobject>(readerPtr);
-    jmethodID method = env->GetMethodID(env->GetObjectClass(reader), "release", "()V");
-    env->CallVoidMethod(reader, method);
+        return nullptr;
+    // Create reader
+    jstring path = env->NewStringUTF(uri);
+    jclass clazz = env->FindClass("api/natsuite/natreader/MP4FrameReader");
+    jmethodID constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;)V");
+    jobject object = env->NewObject(clazz, constructor, path);
+    jobject reader = env->NewGlobalRef(object);
+    return static_cast<void*>(reader);
 }
 
 void NRFrameSize (void* frameReaderPtr, int32_t* outWidth, int32_t* outHeight) {
@@ -112,6 +85,44 @@ float NRFrameRate (void* frameReaderPtr) {
     jobject frameReader = static_cast<jobject>(frameReaderPtr);
     jmethodID method = env->GetMethodID(env->GetObjectClass(frameReader), "frameRate", "()F");
     return env->CallFloatMethod(frameReader, method);
+}
+
+void* NRCreateEnumerator (void* readerPtr, float startTime, float duration) { // INCOMPLETE
+    // Get Java environment
+    JNIEnv* env = GetEnv();
+    if (!env)
+        return nullptr;
+    // Create
+    jobject reader = static_cast<jobject>(readerPtr);
+    jmethodID method = env->GetMethodID(env->GetObjectClass(reader), "createEnumerator", "(FF)Lapi/natsuite/natreader/MediaEnumerator;");
+
+}
+
+void NRDisposeEnumerator (void* enumeratorPtr) {
+    // Get Java environment
+    JNIEnv* env = GetEnv();
+    if (!env)
+        return;
+    // Dispose
+    jobject enumerator = static_cast<jobject>(enumeratorPtr);
+    jmethodID method = env->GetMethodID(env->GetObjectClass(enumerator), "release", "()V");
+    env->CallVoidMethod(enumerator, method);
+}
+
+void NRCopyNextFrame (void* enumeratorPtr, void* buffer, int32_t* outBufferSize, int64_t* outTimestamp) {
+    // Get Java environment
+    JNIEnv* env = GetEnv();
+    if (!env) {
+        *outBufferSize = 0;
+        *outTimestamp = 0L;
+        return;
+    }
+    // Copy next frame
+    jobject enumerator = static_cast<jobject>(enumeratorPtr);
+    jobject byteBuffer = env->NewDirectByteBuffer(buffer, (jlong)*outBufferSize);
+    jmethodID method = env->GetMethodID(env->GetObjectClass(enumerator), "copyNextFrame", "(Ljava/nio/ByteBuffer;)J");
+    *outTimestamp = env->CallLongMethod(enumerator, method, byteBuffer);
+    *outBufferSize = env->CallIntMethod(byteBuffer, env->GetMethodID(env->GetObjectClass(byteBuffer), "limit", "()I"));
 }
 #pragma endregion
 
