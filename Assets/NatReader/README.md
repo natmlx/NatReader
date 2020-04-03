@@ -4,8 +4,9 @@ NatReader is a lightweight video decoding API designed for transcoding applicati
 ## Usage
 Simply create a frame reader then iterate through the frames within it:
 ```csharp
-using (var reader = new FrameReader("file:///path/to/some/video.mp4"))
-    foreach (var (pixelBuffer, timestamp) in reader) {
+var videoPath = "file:///path/to/some/video.mp4";
+using (var reader = new MP4FrameReader(videoPath))
+    foreach (var (pixelBuffer, timestamp) in reader.Read()) {
         // `pixelBuffer` is a `byte[]` with the frame pixel data in RGBA32 layout
         // `timestamp` is the frame timestamp in nanoseconds
     }
@@ -18,6 +19,6 @@ using (var reader = new FrameReader("file:///path/to/some/video.mp4"))
 - macOS 10.13+
 
 ## Notes
-- On Android, `FrameReader` may support decoding frames from a remote URL.
+- On Android, `MP4FrameReader` may support decoding frames from a remote URL.
 
 Thank you!
