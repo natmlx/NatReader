@@ -78,16 +78,20 @@ namespace NatSuite.Readers {
             if (enumerator == IntPtr.Zero)
                 yield break;
             // Read
-            for (var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];;) {
-                var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
-                enumerator.CopyNextFrame(handle.AddrOfPinnedObject(), out var _, out var timestamp);
-                handle.Free();
-                if (timestamp < 0L)
-                    break;
-                yield return (pixelBuffer, timestamp);
+            try {
+                for (var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];;) {
+                    var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
+                    enumerator.CopyNextFrame(handle.AddrOfPinnedObject(), out var _, out var timestamp);
+                    handle.Free();
+                    if (timestamp < 0L)
+                        break;
+                    yield return (pixelBuffer, timestamp);
+                }
             }
             // Dispose enumerator
-            enumerator.DisposeEnumerator();
+            finally {
+                enumerator.DisposeEnumerator();
+            }
         }
         #endregion
 

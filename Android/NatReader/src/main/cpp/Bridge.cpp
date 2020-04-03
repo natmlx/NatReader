@@ -127,7 +127,7 @@ void* NRCreateEnumerator (void* readerPtr, float startTime, float duration) {
 void NRDisposeEnumerator (void* enumeratorPtr) {
     // Get Java environment
     JNIEnv* env = GetEnv();
-    if (!env)
+    if (!env || !enumeratorPtr)
         return;
     // Release
     jobject enumerator = static_cast<jobject>(enumeratorPtr);
@@ -148,7 +148,7 @@ void NRCopyNextFrame (void* enumeratorPtr, void* buffer, int32_t* outBufferSize,
     }
     // Copy next frame
     jobject enumerator = static_cast<jobject>(enumeratorPtr);
-    jobject byteBuffer = env->NewDirectByteBuffer(buffer, 1 << 32);
+    jobject byteBuffer = env->NewDirectByteBuffer(buffer, 1 << 30); // Should be big enough for most things
     jclass clazz = env->GetObjectClass(enumerator);
     jclass bbClazz = env->GetObjectClass(byteBuffer);
     jmethodID method = env->GetMethodID(clazz, "copyNextFrame", "(Ljava/nio/ByteBuffer;)J");
