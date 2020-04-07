@@ -45,11 +45,10 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-     <Compile Include="Assets\NatReader\Examples\Playback\Playback.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\IMediaReader.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\Bridge.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\Internal\Docs.cs" />
-     <Compile Include="Assets\NatReader\Plugins\Managed\MP4FrameReader.cs" />
+     <Compile Include="Assets\NatSuite\Examples\Playback\Playback.cs" />
+     <Compile Include="Assets\NatSuite\Plugins\Managed\Readers\IMediaReader.cs" />
+     <Compile Include="Assets\NatSuite\Plugins\Managed\Readers\Internal\Bridge.cs" />
+     <Compile Include="Assets\NatSuite\Plugins\Managed\Readers\MP4FrameReader.cs" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>/Users/yusuf/Documents/Projects/NatReader-API/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
  </Reference>

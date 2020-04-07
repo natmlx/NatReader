@@ -18,7 +18,7 @@ namespace NatSuite.Examples {
 
         IEnumerator Start () {
             using (var reader = new MP4FrameReader(VideoPath)) {
-                Debug.Log($"Frame: {reader.frameSize} @{reader.frameRate}Hz Duration: {reader.duration} URI: {reader.uri}");
+                Debug.Log($"{reader}");
                 // Create and display frame texture
                 var frameTexture = new Texture2D(reader.frameSize.width, reader.frameSize.height, TextureFormat.RGBA32, false, false);
                 rawImage.texture = frameTexture;

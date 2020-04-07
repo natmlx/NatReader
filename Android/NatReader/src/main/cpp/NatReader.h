@@ -64,6 +64,57 @@ BRIDGE EXPORT void APIENTRY NRMediaURI (void* reader, char* dstString);
  Opaque handle to a media reader.
  */
 BRIDGE EXPORT float APIENTRY NRMediaDuration (void* reader);
+
+/*!
+ @function NRCreateEnumerator
+ 
+ @abstract Create a media frame enumerator to read frames from the reader.
+ 
+ @discussion Create a media frame enumerator to read frames from the reader.
+ 
+ @param startTime
+ Media time to start reading samples in seconds.
+    
+ @param duration
+ Duration in seconds.
+ */
+BRIDGE EXPORT void* APIENTRY NRCreateEnumerator (void* reader, float startTime, float duration);
+#pragma endregion
+
+
+#pragma region --MediaEnumerator--
+/*!
+ @function NRDisposeEnumerator
+ 
+ @abstract Dispose a media enumerator.
+ 
+ @discussion Dispose a media enumerator.
+ 
+ @param enumerator
+ Opaque handle to a media enumerator.
+ */
+BRIDGE EXPORT void APIENTRY NRDisposeEnumerator (void* enumerator);
+
+/*!
+ @function NRCopyNextFrame
+ 
+ @abstract Copy the next frame from the reader.
+ 
+ @discussion Copy the next frame from the reader.
+ 
+ @param enumerator
+ Opaque handle to a media enumeratorr.
+ 
+ @param dstBuffer
+ Destination buffer.
+ 
+ @param outBufferSize
+ Number of bytes copied in bytes.
+ 
+ @param outTimestamp
+ Timestamp of the copied buffer.
+ */
+BRIDGE EXPORT void APIENTRY NRCopyNextFrame (void* enumerator, void* dstBuffer, int32_t* outBufferSize, int64_t* outTimestamp);
 #pragma endregion
 
 
@@ -109,55 +160,4 @@ BRIDGE EXPORT void APIENTRY NRFrameSize (void* frameReader, int32_t* outWidth, i
  Opaque handle to a frame reader.
  */
 BRIDGE EXPORT float APIENTRY NRFrameRate (void* frameReader);
-#pragma endregion
-
-
-#pragma region --MediaEnumerator--
-/*!
- @function NRCreateEnumerator
- 
- @abstract Create a media frame enumerator to read frames from the reader.
- 
- @discussion Create a media frame enumerator to read frames from the reader.
- 
- @param startTime
- Media time to start reading samples in seconds.
-    
- @param duration
- Duration in seconds.
- */
-BRIDGE EXPORT void* APIENTRY NRCreateEnumerator (void* reader, float startTime, float duration);
-
-/*!
- @function NRDisposeEnumerator
- 
- @abstract Dispose a media enumerator.
- 
- @discussion Dispose a media enumerator.
- 
- @param enumerator
- Opaque handle to a media enumerator.
- */
-BRIDGE EXPORT void APIENTRY NRDisposeEnumerator (void* enumerator);
-
-/*!
- @function NRCopyNextFrame
- 
- @abstract Copy the next frame from the reader.
- 
- @discussion Copy the next frame from the reader.
- 
- @param enumerator
- Opaque handle to a media enumeratorr.
- 
- @param dstBuffer
- Destination buffer.
- 
- @param outBufferSize
- Number of bytes copied in bytes.
- 
- @param outTimestamp
- Timestamp of the copied buffer.
- */
-BRIDGE EXPORT void APIENTRY NRCopyNextFrame (void* enumerator, void* dstBuffer, int32_t* outBufferSize, int64_t* outTimestamp);
 #pragma endregion

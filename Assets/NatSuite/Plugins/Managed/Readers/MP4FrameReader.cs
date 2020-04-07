@@ -7,6 +7,7 @@ namespace NatSuite.Readers {
 
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.InteropServices;
     using System.Text;
     using Internal;
@@ -14,14 +15,12 @@ namespace NatSuite.Readers {
     /// <summary>
     /// MP4 video frame reader.
     /// </summary>
-    [Doc(@"MP4FrameReader")]
     public sealed class MP4FrameReader : IFrameReader {
 
         #region --Client API--
         /// <summary>
         /// Media source URI.
         /// </summary>
-        [Doc(@"URI")]
         public string uri {
             get {
                 var result = new StringBuilder(1024);
@@ -33,13 +32,11 @@ namespace NatSuite.Readers {
         /// <summary>
         /// Media duration in seconds.
         /// </summary>
-        [Doc(@"Duration")]
         public float duration => reader.Duration();
 
         /// <summary>
         /// Frame size.
         /// </summary>
-        [Doc(@"FrameSize")]
         public (int width, int height) frameSize {
             get {
                 reader.FrameSize(out var width, out var height);
@@ -50,20 +47,17 @@ namespace NatSuite.Readers {
         /// <summary>
         /// Frame rate.
         /// </summary>
-        [Doc(@"FrameRate")]
         public float frameRate => reader.FrameRate();
         
         /// <summary>
         /// Create an MP4 frame reader.
         /// </summary>
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
-        [Doc(@"MP4FrameReaderCtor")]
         public MP4FrameReader (string uri) => this.reader = Bridge.CreateMP4FrameReader(uri);
         
         /// <summary>
         /// Dispose the reader and release resources.
         /// </summary>
-        [Doc(@"Dispose")]
         public void Dispose () => reader.Dispose();
 
         /// <summary>
@@ -71,7 +65,6 @@ namespace NatSuite.Readers {
         /// </summary>
         /// <param name="startTime">Optional. Time to start reading samples in seconds.</param>
         /// <param name="duration">Optional. Duration in seconds.</param>
-        [Doc(@"Read")]
         public IEnumerable<(byte[] pixelBuffer, long timestamp)> Read (float startTime = 0, float duration = -1) {
             // Create enumerator
             var enumerator = reader.CreateEnumerator(startTime, duration > 0 ? duration : this.duration);
@@ -95,6 +88,23 @@ namespace NatSuite.Readers {
         }
         #endregion
 
+
+        #region --Operations--
+
         private readonly IntPtr reader;
+
+        public override string ToString () =>
+        $"{{{Environment.NewLine}\t" +
+        string.Join(
+            $"{Environment.NewLine}\t",
+            new Dictionary<string, object> {
+                ["uri"] = uri,
+                ["duration"] = duration,
+                ["frameSize"] = frameSize,
+                ["frameRate"] = frameRate
+            }.Select(pair => $"{pair.Key}: {pair.Value}")
+        ) +
+        $"{Environment.NewLine}}}";
+        #endregion
     }
 }

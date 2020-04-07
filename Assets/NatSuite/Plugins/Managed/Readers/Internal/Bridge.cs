@@ -26,6 +26,16 @@ namespace NatSuite.Readers.Internal {
         public static extern void URI (this IntPtr reader, [MarshalAs(UnmanagedType.LPStr)] StringBuilder dstString);
         [DllImport(Assembly, EntryPoint = @"NRMediaDuration")]
         public static extern float Duration (this IntPtr reader);
+        [DllImport(Assembly, EntryPoint = @"NRCreateEnumerator")]
+        public static extern IntPtr CreateEnumerator (this IntPtr reader, float startTime, float duration);
+        #endregion
+
+
+        #region --MediaEnumerator--
+        [DllImport(Assembly, EntryPoint = @"NRDisposeEnumerator")]
+        public static extern void DisposeEnumerator (this IntPtr enumerator);
+        [DllImport(Assembly, EntryPoint = @"NRCopyNextFrame")]
+        public static extern void CopyNextFrame (this IntPtr enumerator, IntPtr buffer, out int bufferSize, out long timestamp);
         #endregion
 
 
@@ -36,16 +46,6 @@ namespace NatSuite.Readers.Internal {
         public static extern void FrameSize (this IntPtr frameReader, out int width, out int height);
         [DllImport(Assembly, EntryPoint = @"NRFrameRate")]
         public static extern float FrameRate (this IntPtr frameReader);
-        #endregion
-
-
-        #region --MediaEnumerator--
-        [DllImport(Assembly, EntryPoint = @"NRCreateEnumerator")]
-        public static extern IntPtr CreateEnumerator (this IntPtr reader, float startTime, float duration);
-        [DllImport(Assembly, EntryPoint = @"NRDisposeEnumerator")]
-        public static extern void DisposeEnumerator (this IntPtr enumerator);
-        [DllImport(Assembly, EntryPoint = @"NRCopyNextFrame")]
-        public static extern void CopyNextFrame (this IntPtr enumerator, IntPtr buffer, out int bufferSize, out long timestamp);
         #endregion
     }
 }
