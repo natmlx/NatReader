@@ -5,7 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/NatSuite/Examples/Playback/Playback.unity
     guid: 7b165a3b03d8a4c99946fb3df23ccebb
+  - enabled: 1
+    path: Assets/Tests/Tests.unity
+    guid: 1dc66d98858bd4046ab8e6f5cd98a25e
   m_configObjects: {}

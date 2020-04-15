@@ -32,7 +32,7 @@ namespace NatSuite.Examples {
             }
         }
 
-        private static string VideoPath {
+        public static string VideoPath {
             get {
                 const string Name = "city.mp4";
                 var path = string.Empty;
