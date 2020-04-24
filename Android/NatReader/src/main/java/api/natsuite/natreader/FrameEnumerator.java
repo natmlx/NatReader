@@ -25,7 +25,7 @@ final class FrameEnumerator implements MediaEnumerator {
     private final Semaphore feedFence = new Semaphore(0);
     private final Semaphore readFence = new Semaphore(0);
 
-    public FrameEnumerator (final MediaExtractor extractor, final MediaFormat format, final float startTime, final float duration) {
+    FrameEnumerator (final MediaExtractor extractor, final MediaFormat format, final float startTime, final float duration) {
         // Set time range
         final long startTimeUs = (long)(startTime * 1e+6);
         this.extractor = extractor;

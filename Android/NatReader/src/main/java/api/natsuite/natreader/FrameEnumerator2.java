@@ -33,7 +33,7 @@ final class FrameEnumerator2 implements MediaEnumerator {
     private GLBlitEncoder blitEncoder;
     private MediaCodec decoder;
 
-    public FrameEnumerator2 (final MediaExtractor extractor, final MediaFormat format, final float startTime, final float duration) {
+    FrameEnumerator2 (final MediaExtractor extractor, final MediaFormat format, final float startTime, final float duration) {
         // Set time range
         final long startTimeUs = (long)(startTime * 1e+6);
         this.extractor = extractor;
@@ -43,7 +43,7 @@ final class FrameEnumerator2 implements MediaEnumerator {
         this.imageReaderThread = new HandlerThread("Frame Enumerator Thread");
         this.imageReaderThread.start();
         this.imageReaderHandler = new Handler(imageReaderThread.getLooper());
-        this.imageReader = ImageReader.newInstance(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT), PixelFormat.RGBA_8888, 1);
+        this.imageReader = ImageReader.newInstance(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT), PixelFormat.RGBA_8888, 3);
         // Setup render context
         this.renderContext = new GLRenderContext(null, imageReader.getSurface(), false);
         this.renderContext.start();

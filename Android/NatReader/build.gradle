@@ -48,6 +48,7 @@ dependencies {
 task copyToUnity(type: Copy) {
     from 'build/outputs/aar/NatReader-release.aar'
     into '../../Assets/NatSuite/Plugins/Android'
+    rename '(.+)-release(.+)', '$1$2'
 }
 
 assemble.finalizedBy (copyToUnity)

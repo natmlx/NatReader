@@ -23,6 +23,8 @@ public final class MP4FrameReader implements FrameReader {
             Log.e("NatSuite", "NatReader Error: MP4FrameReader failed to create media extractor with error: " + ex);
         }
         this.format = format;
+        if (this.format != null)
+            Log.d("NatSuite", "NatReader: Initialized MP4FrameReader for video with duration "+duration()+"s and size "+frameWidth()+"x"+frameHeight()+"@"+frameRate()+"Hz");
     }
 
     @Override
