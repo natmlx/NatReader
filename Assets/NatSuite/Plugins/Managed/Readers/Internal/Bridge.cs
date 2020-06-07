@@ -41,7 +41,7 @@ namespace NatSuite.Readers.Internal {
 
         #region --FrameReader--
         [DllImport(Assembly, EntryPoint = @"NRCreateMP4FrameReader")]
-        public static extern IntPtr CreateMP4FrameReader ([MarshalAs(UnmanagedType.LPStr)] string url);
+        public static extern IntPtr CreateMP4FrameReader ([MarshalAs(UnmanagedType.LPStr)] string path);
         [DllImport(Assembly, EntryPoint = @"NRFrameSize")]
         public static extern void FrameSize (this IntPtr frameReader, out int width, out int height);
         [DllImport(Assembly, EntryPoint = @"NRFrameRate")]

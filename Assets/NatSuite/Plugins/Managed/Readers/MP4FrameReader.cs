@@ -52,8 +52,8 @@ namespace NatSuite.Readers {
         /// <summary>
         /// Create an MP4 frame reader.
         /// </summary>
-        /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
-        public MP4FrameReader (string uri) => this.reader = Bridge.CreateMP4FrameReader(uri);
+        /// <param name="uri">MP4 file path.</param>
+        public MP4FrameReader (string path) => this.reader = Bridge.CreateMP4FrameReader(path);
         
         /// <summary>
         /// Dispose the reader and release resources.

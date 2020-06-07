@@ -25,7 +25,7 @@ float NRMediaDuration (void* readerPtr) {
 }
 
 void* NRCreateMP4FrameReader (const char* url) {
-    NSURL* uri = [NSURL URLWithString:[NSString stringWithUTF8String:url]];
+    NSURL* uri = [NSURL fileURLWithPath:[NSString stringWithUTF8String:url]];
     NRMP4FrameReader* reader = [NRMP4FrameReader.alloc initWithURI:uri];
     return (__bridge_retained void*)reader;
 }

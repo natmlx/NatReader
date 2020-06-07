@@ -127,9 +127,9 @@ BRIDGE EXPORT void APIENTRY NRCopyNextFrame (void* enumerator, void* dstBuffer, 
  @discussion Create an MP4 frame reader.
  
  @param uri
- URL to media source. MUST be prepended with URI scheme/protocol.
+ MP4 file path.
  */
-BRIDGE EXPORT void* APIENTRY NRCreateMP4FrameReader (const char* uri);
+BRIDGE EXPORT void* APIENTRY NRCreateMP4FrameReader (const char* path);
 
 /*!
  @function NRFrameSize
