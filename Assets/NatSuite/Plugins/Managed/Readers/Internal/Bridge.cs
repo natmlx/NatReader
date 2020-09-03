@@ -27,7 +27,7 @@ namespace NatSuite.Readers.Internal {
         [DllImport(Assembly, EntryPoint = @"NRMediaDuration")]
         public static extern float Duration (this IntPtr reader);
         [DllImport(Assembly, EntryPoint = @"NRCreateEnumerator")]
-        public static extern IntPtr CreateEnumerator (this IntPtr reader, float startTime, float duration);
+        public static extern IntPtr CreateEnumerator (this IntPtr reader, float startTime, float duration, int frameSkip);
         #endregion
 
 

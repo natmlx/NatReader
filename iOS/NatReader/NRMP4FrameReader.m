@@ -18,7 +18,7 @@
 @interface NRAVAssetReaderEnumerator : NSObject <NRMediaEnumerator>
 @property AVAssetReader* reader;
 @property AVAssetReaderTrackOutput* readerOutput;
-+ (instancetype) enumeratorWithAsset:(AVAsset*) asset track:(AVAssetTrack*) track andTimeRange:(CMTimeRange) timeRange;
++ (instancetype) enumeratorWithAsset:(AVAsset*) asset track:(AVAssetTrack*) track timeRange:(CMTimeRange) timeRange andFrameSkip:(int) frameSkip;
 @end
 
 
@@ -52,8 +52,11 @@
     return videoTrack.nominalFrameRate;
 }
 
-- (id<NRMediaEnumerator>) createEnumeratorForTimeRange:(CMTimeRange) timeRange {
-    return asset.readable && videoTrack ? [NRAVAssetReaderEnumerator enumeratorWithAsset:asset track:videoTrack andTimeRange:timeRange] : nil;
+- (id<NRMediaEnumerator>) createEnumeratorForTimeRange:(CMTimeRange) timeRange withFrameSkip:(int) frameSkip {
+    if (asset.readable && videoTrack)
+        return [NRAVAssetReaderEnumerator enumeratorWithAsset:asset track:videoTrack timeRange:timeRange andFrameSkip:frameSkip];
+    else
+        return nil;
 }
 
 @end
@@ -61,7 +64,7 @@
 
 @implementation NRAVAssetReaderEnumerator
 
-+ (instancetype) enumeratorWithAsset:(AVAsset*) asset track:(AVAssetTrack*) track andTimeRange:(CMTimeRange) timeRange {
++ (instancetype) enumeratorWithAsset:(AVAsset*) asset track:(AVAssetTrack*) track timeRange:(CMTimeRange) timeRange andFrameSkip:(int) frameSkip { // INCOMPLETE // Frame skip
     NSError* error;
     AVAssetReader* reader = [AVAssetReader.alloc initWithAsset:asset error:&error];
     if (error) {

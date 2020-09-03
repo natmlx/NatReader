@@ -1,4 +1,4 @@
-package api.natsuite.natreader;
+package api.natsuite.natreader.enumerators;
 
 import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
@@ -14,10 +14,12 @@ import android.util.Log;
 import android.view.Surface;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Semaphore;
+
+import api.natsuite.natreader.MediaEnumerator;
 import api.natsuite.natrender.GLBlitEncoder;
 import api.natsuite.natrender.GLRenderContext;
 
-final class FrameEnumerator2 implements MediaEnumerator {
+public final class FrameEnumerator2 implements MediaEnumerator {
 
     private final MediaExtractor extractor;
     private final HandlerThread imageReaderThread;
@@ -43,7 +45,7 @@ final class FrameEnumerator2 implements MediaEnumerator {
         this.imageReaderThread = new HandlerThread("Frame Enumerator Thread");
         this.imageReaderThread.start();
         this.imageReaderHandler = new Handler(imageReaderThread.getLooper());
-        this.imageReader = ImageReader.newInstance(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT), PixelFormat.RGBA_8888, 1);
+        this.imageReader = ImageReader.newInstance(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT), PixelFormat.RGBA_8888, 2);
         // Setup render context
         this.renderContext = new GLRenderContext(null, imageReader.getSurface(), false);
         this.renderContext.start();

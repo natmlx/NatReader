@@ -63,11 +63,12 @@ namespace NatSuite.Readers {
         /// <summary>
         /// Read frames in a time range.
         /// </summary>
-        /// <param name="startTime">Optional. Time to start reading samples in seconds.</param>
-        /// <param name="duration">Optional. Duration in seconds.</param>
-        public IEnumerable<(byte[] pixelBuffer, long timestamp)> Read (float startTime = 0, float duration = -1) {
+        /// <param name="startTime">Time to start reading samples in seconds.</param>
+        /// <param name="duration">Duration in seconds.</param>
+        /// <param name="frameSkip">Number of frames to skip when reading.</param>
+        public IEnumerable<(byte[] pixelBuffer, long timestamp)> Read (float startTime = 0, float duration = -1, int frameSkip = 0) {
             // Create enumerator
-            var enumerator = reader.CreateEnumerator(startTime, duration > 0 ? duration : this.duration);
+            var enumerator = reader.CreateEnumerator(startTime, duration, frameSkip);
             if (enumerator == IntPtr.Zero)
                 yield break;
             // Read

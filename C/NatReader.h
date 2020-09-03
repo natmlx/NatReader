@@ -76,9 +76,12 @@ BRIDGE EXPORT float APIENTRY NRMediaDuration (void* reader);
  Media time to start reading samples in seconds.
     
  @param duration
- Duration in seconds.
+ Duration in seconds. If negative, the enumerator will read till the end of the media stream.
+ 
+ @param frameSkip
+ Number of frames to skip when reading.
  */
-BRIDGE EXPORT void* APIENTRY NRCreateEnumerator (void* reader, float startTime, float duration);
+BRIDGE EXPORT void* APIENTRY NRCreateEnumerator (void* reader, float startTime, float duration, int frameSkip);
 #pragma endregion
 
 

@@ -24,6 +24,25 @@ float NRMediaDuration (void* readerPtr) {
     return reader.duration;
 }
 
+void* NRCreateEnumerator (void* readerPtr, float startTime, float duration, int frameSkip) {
+    id<NRMediaReader> reader = (__bridge id<NRMediaReader>)readerPtr;
+    CMTime startCMTime = CMTimeMakeWithSeconds(startTime, NSEC_PER_SEC);
+    CMTime durationCMTime = duration > 0 ? CMTimeMakeWithSeconds(duration, NSEC_PER_SEC) : kCMTimePositiveInfinity;
+    CMTimeRange timeRange = CMTimeRangeMake(startCMTime, durationCMTime);
+    id<NRMediaEnumerator> enumerator = [reader createEnumeratorForTimeRange:timeRange withFrameSkip:frameSkip];
+    return (__bridge_retained void*)enumerator;
+}
+
+void NRDisposeEnumerator (void* enumeratorPtr) {
+    id<NRMediaEnumerator> enumerator = (__bridge_transfer id<NRMediaEnumerator>)enumeratorPtr;
+    [enumerator dispose];
+}
+
+void NRCopyNextFrame (void* enumeratorPtr, void* buffer, int32_t* outBufferSize, int64_t* outTimestamp) {
+    id<NRMediaEnumerator> enumerator = (__bridge id<NRMediaEnumerator>)enumeratorPtr;
+    [enumerator copyNextFrame:buffer withSize:outBufferSize andTimestamp:outTimestamp];
+}
+
 void* NRCreateMP4FrameReader (const char* url) {
     NSURL* uri = [NSURL URLWithString:[NSString stringWithUTF8String:url]];
     NRMP4FrameReader* reader = [NRMP4FrameReader.alloc initWithURI:uri];
@@ -39,23 +58,4 @@ void NRFrameSize (void* frameReaderPtr, int32_t* width, int32_t* height) {
 float NRFrameRate (void* frameReaderPtr) {
     id<NRFrameReader> reader = (__bridge id<NRFrameReader>)frameReaderPtr;
     return reader.frameRate;
-}
-
-void* NRCreateEnumerator (void* readerPtr, float startTime, float duration) {
-    id<NRMediaReader> reader = (__bridge id<NRMediaReader>)readerPtr;
-    CMTime startCMTime = CMTimeMakeWithSeconds(startTime, NSEC_PER_SEC);
-    CMTime durationCMTime = CMTimeMakeWithSeconds(duration, NSEC_PER_SEC);
-    CMTimeRange timeRange = CMTimeRangeMake(startCMTime, durationCMTime);
-    id<NRMediaEnumerator> enumerator = [reader createEnumeratorForTimeRange:timeRange];
-    return (__bridge_retained void*)enumerator;
-}
-
-void NRDisposeEnumerator (void* enumeratorPtr) {
-    id<NRMediaEnumerator> enumerator = (__bridge_transfer id<NRMediaEnumerator>)enumeratorPtr;
-    [enumerator dispose];
-}
-
-void NRCopyNextFrame (void* enumeratorPtr, void* buffer, int32_t* outBufferSize, int64_t* outTimestamp) {
-    id<NRMediaEnumerator> enumerator = (__bridge id<NRMediaEnumerator>)enumeratorPtr;
-    [enumerator copyNextFrame:buffer withSize:outBufferSize andTimestamp:outTimestamp];
 }

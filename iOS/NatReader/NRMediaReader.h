@@ -15,7 +15,7 @@
 @protocol NRMediaReader <NSObject>
 @property (readonly) NSURL* uri;
 @property (readonly) float duration;
-- (id<NRMediaEnumerator>) createEnumeratorForTimeRange:(CMTimeRange) timeRange;
+- (id<NRMediaEnumerator>) createEnumeratorForTimeRange:(CMTimeRange) timeRange withFrameSkip:(int) frameSkip;
 @end
 
 @protocol NRFrameReader <NRMediaReader>

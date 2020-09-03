@@ -16,7 +16,7 @@
 		8868FAD7233924CD002902FE /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "$(PROJECT_DIR)/../Assets/NatReader/Plugins/iOS";
+			dstPath = "$(PROJECT_DIR)/../Assets/NatSuite/Plugins/iOS";
 			dstSubfolderSpec = 0;
 			files = (
 				8868FAE7233929FB002902FE /* libNatReader.a in CopyFiles */,
@@ -26,11 +26,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		885E8B4E250145090073E7FD /* NatReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NatReader.h; path = ../../C/NatReader.h; sourceTree = "<group>"; };
 		8868FAD9233924CD002902FE /* libNatReader.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libNatReader.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8868FADC233924CD002902FE /* NRMediaReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NRMediaReader.h; sourceTree = "<group>"; };
 		8868FADD233924CD002902FE /* NRMP4FrameReader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NRMP4FrameReader.m; sourceTree = "<group>"; };
 		8868FAE5233924DC002902FE /* Bridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Bridge.m; sourceTree = "<group>"; };
-		888546BB23CB58D000A137BC /* NatReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NatReader.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,10 +63,10 @@
 		8868FADB233924CD002902FE /* NatReader */ = {
 			isa = PBXGroup;
 			children = (
+				885E8B4E250145090073E7FD /* NatReader.h */,
 				8868FADC233924CD002902FE /* NRMediaReader.h */,
 				8868FADD233924CD002902FE /* NRMP4FrameReader.m */,
 				8868FAE5233924DC002902FE /* Bridge.m */,
-				888546BB23CB58D000A137BC /* NatReader.h */,
 			);
 			path = NatReader;
 			sourceTree = "<group>";
