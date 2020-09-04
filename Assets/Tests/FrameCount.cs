@@ -11,7 +11,7 @@ namespace NatSuite.Tests {
     public class FrameCount : MonoBehaviour {
 
         void Start () {
-            using (var reader = new MP4FrameReader(Examples.Playback.VideoPath)) {
+            using (var reader = new MP4Reader(Examples.Playback.VideoPath)) {
                 var frameCount = 0;
                 foreach (var (pixelBuffer, timestamp) in reader.Read())
                     frameCount++;

@@ -40,9 +40,10 @@
      <Compile Include="Assets\NatSuite\Plugins\Managed\Readers\IFrameReader.cs" />
      <Compile Include="Assets\NatSuite\Plugins\Managed\Readers\IMediaReader.cs" />
      <Compile Include="Assets\NatSuite\Plugins\Managed\Readers\Internal\Bridge.cs" />
-     <Compile Include="Assets\NatSuite\Plugins\Managed\Readers\MP4FrameReader.cs" />
+     <Compile Include="Assets\NatSuite\Plugins\Managed\Readers\MP4Reader.cs" />
      <Compile Include="Assets\Tests\FrameCount.cs" />
      <Compile Include="Assets\Tests\ReadFrames.cs" />
+     <Compile Include="Assets\Tests\StepFrames.cs" />
     <Reference Include="UnityEngine">
         <HintPath>/Applications/Unity/Hub/Editor/2019.3.11f1/Unity.app/Contents/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>

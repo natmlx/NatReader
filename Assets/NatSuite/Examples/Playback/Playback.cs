@@ -17,7 +17,7 @@ namespace NatSuite.Examples {
         public AspectRatioFitter aspectFitter;
 
         IEnumerator Start () {
-            using (var reader = new MP4FrameReader(VideoPath)) {
+            using (var reader = new MP4Reader(VideoPath)) {
                 Debug.Log($"{reader}");
                 // Create and display frame texture
                 var frameTexture = new Texture2D(reader.frameSize.width, reader.frameSize.height, TextureFormat.RGBA32, false, false);

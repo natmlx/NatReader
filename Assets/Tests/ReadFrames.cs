@@ -5,16 +5,34 @@
 
 namespace NatSuite.Tests {
 
-    using System.Threading.Tasks;
+    using System.Collections;
     using UnityEngine;
+    using UnityEngine.UI;
     using Readers;
 
     public class ReadFrames : MonoBehaviour {
 
-        async void Start () {
-            var reader = new MP4FrameReader(Examples.Playback.VideoPath);
-            foreach (var (pixelBuffer, timestamp) in reader.Read())
-                await Task.Delay(600_000);
+        public RawImage rawImage;
+        public AspectRatioFitter aspectFitter;
+
+        IEnumerator Start () {
+            Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
+            // Create reader
+            var reader = new MP4Reader(Examples.Playback.VideoPath);
+            // Create frame texture
+            var frameTexture = new Texture2D(reader.frameSize.width, reader.frameSize.height, TextureFormat.RGBA32, false, false);
+            rawImage.texture = frameTexture;
+            aspectFitter.aspectRatio = frameTexture.width / (float)frameTexture.height;
+            // Render all frames
+            var frameCount = 0;
+            foreach (var (pixelBuffer, timestamp) in reader.Read()) {
+                frameTexture.LoadRawTextureData(pixelBuffer);
+                frameTexture.Apply();
+                frameCount++;
+                Debug.Log($"Rendered frame for time {timestamp / 1e+9f}");
+                yield return new WaitForEndOfFrame();
+            }
+            Debug.Log($"Finished reading {frameCount} frames");
         }
     }
 }

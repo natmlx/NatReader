@@ -10,12 +10,13 @@ namespace NatSuite.Readers {
     using System.Linq;
     using System.Runtime.InteropServices;
     using System.Text;
+    using UnityEngine;
     using Internal;
 
     /// <summary>
     /// MP4 video frame reader.
     /// </summary>
-    public sealed class MP4FrameReader : IFrameReader {
+    public sealed class MP4Reader : IFrameReader {
 
         #region --Client API--
         /// <summary>
@@ -53,7 +54,7 @@ namespace NatSuite.Readers {
         /// Create an MP4 frame reader.
         /// </summary>
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
-        public MP4FrameReader (string uri) => this.reader = Bridge.CreateMP4FrameReader(uri);
+        public MP4Reader (string uri) => this.reader = Bridge.CreateMP4FrameReader(uri);
         
         /// <summary>
         /// Dispose the reader and release resources.
@@ -69,8 +70,10 @@ namespace NatSuite.Readers {
         public IEnumerable<(byte[] pixelBuffer, long timestamp)> Read (float startTime = 0, float duration = -1, int frameSkip = 0) {
             // Create enumerator
             var enumerator = reader.CreateEnumerator(startTime, duration, frameSkip);
-            if (enumerator == IntPtr.Zero)
+            if (enumerator == IntPtr.Zero) {
+                Debug.LogError("NatReader Error: MP4FrameReader failed to create enumerator");
                 yield break;
+            }
             // Read
             try {
                 for (var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];;) {
