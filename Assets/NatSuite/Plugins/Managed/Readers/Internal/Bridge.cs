@@ -27,7 +27,7 @@ namespace NatSuite.Readers.Internal {
         [DllImport(Assembly, EntryPoint = @"NRMediaDuration")]
         public static extern float Duration (this IntPtr reader);
         [DllImport(Assembly, EntryPoint = @"NRCreateEnumerator")]
-        public static extern IntPtr CreateEnumerator (this IntPtr reader, float startTime, float duration);
+        public static extern IntPtr CreateEnumerator (this IntPtr reader, float startTime, float duration, int frameSkip);
         #endregion
 
 
@@ -40,8 +40,8 @@ namespace NatSuite.Readers.Internal {
 
 
         #region --FrameReader--
-        [DllImport(Assembly, EntryPoint = @"NRCreateMP4FrameReader")]
-        public static extern IntPtr CreateMP4FrameReader ([MarshalAs(UnmanagedType.LPStr)] string url);
+        [DllImport(Assembly, EntryPoint = @"NRCreateMP4Reader")]
+        public static extern IntPtr CreateMP4Reader ([MarshalAs(UnmanagedType.LPStr)] string url);
         [DllImport(Assembly, EntryPoint = @"NRFrameSize")]
         public static extern void FrameSize (this IntPtr frameReader, out int width, out int height);
         [DllImport(Assembly, EntryPoint = @"NRFrameRate")]

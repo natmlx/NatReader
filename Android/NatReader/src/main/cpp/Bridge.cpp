@@ -61,53 +61,7 @@ float NRMediaDuration (void* readerPtr) {
     return value;
 }
 
-void* NRCreateMP4FrameReader (const char* uri) {
-    // Get Java environment
-    JNIEnv* env = GetEnv();
-    if (!env)
-        return nullptr;
-    // Create reader
-    jstring path = env->NewStringUTF(uri);
-    jclass clazz = env->FindClass("api/natsuite/natreader/MP4FrameReader");
-    jmethodID constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;)V");
-    jobject object = env->NewObject(clazz, constructor, path);
-    jobject reader = env->NewGlobalRef(object);
-    // Release locals
-    env->DeleteLocalRef(path);
-    env->DeleteLocalRef(clazz);
-    env->DeleteLocalRef(object);
-    return static_cast<void*>(reader);
-}
-
-void NRFrameSize (void* frameReaderPtr, int32_t* outWidth, int32_t* outHeight) {
-    // Get Java environment
-    JNIEnv* env = GetEnv();
-    if (!env)
-        return;
-    // Get frame size
-    jobject frameReader = static_cast<jobject>(frameReaderPtr);
-    jclass clazz = env->GetObjectClass(frameReader);
-    *outWidth = env->CallIntMethod(frameReader, env->GetMethodID(clazz, "frameWidth", "()I"));
-    *outHeight = env->CallIntMethod(frameReader, env->GetMethodID(clazz, "frameHeight", "()I"));
-    // Release
-    env->DeleteLocalRef(clazz);
-}
-
-float NRFrameRate (void* frameReaderPtr) {
-    // Get Java environment
-    JNIEnv* env = GetEnv();
-    if (!env)
-        return 0.f;
-    // Get frame rate
-    jobject reader = static_cast<jobject>(frameReaderPtr);
-    jclass clazz = env->GetObjectClass(reader);
-    jmethodID method = env->GetMethodID(clazz, "frameRate", "()F");
-    float value = env->CallFloatMethod(reader, method);
-    env->DeleteLocalRef(clazz);
-    return value;
-}
-
-void* NRCreateEnumerator (void* readerPtr, float startTime, float duration) {
+void* NRCreateEnumerator (void* readerPtr, float startTime, float duration, int frameSkip) {
     // Get Java environment
     JNIEnv* env = GetEnv();
     if (!env)
@@ -115,8 +69,8 @@ void* NRCreateEnumerator (void* readerPtr, float startTime, float duration) {
     // Create
     jobject reader = static_cast<jobject>(readerPtr);
     jclass clazz = env->GetObjectClass(reader);
-    jmethodID method = env->GetMethodID(clazz, "createEnumerator", "(FF)Lapi/natsuite/natreader/MediaEnumerator;");
-    jobject object = env->CallObjectMethod(reader, method, startTime, duration);
+    jmethodID method = env->GetMethodID(clazz, "createEnumerator", "(FFI)Lapi/natsuite/natreader/MediaEnumerator;");
+    jobject object = env->CallObjectMethod(reader, method, startTime, duration, frameSkip);
     jobject enumerator = env->NewGlobalRef(object);
     // Release locals
     env->DeleteLocalRef(clazz);
@@ -159,6 +113,52 @@ void NRCopyNextFrame (void* enumeratorPtr, void* buffer, int32_t* outBufferSize,
     env->DeleteLocalRef(byteBuffer);
     env->DeleteLocalRef(clazz);
     env->DeleteLocalRef(bbClazz);
+}
+
+void* NRCreateMP4Reader (const char* uri) {
+    // Get Java environment
+    JNIEnv* env = GetEnv();
+    if (!env)
+        return nullptr;
+    // Create reader
+    jstring path = env->NewStringUTF(uri);
+    jclass clazz = env->FindClass("api/natsuite/natreader/MP4Reader");
+    jmethodID constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;)V");
+    jobject object = env->NewObject(clazz, constructor, path);
+    jobject reader = env->NewGlobalRef(object);
+    // Release locals
+    env->DeleteLocalRef(path);
+    env->DeleteLocalRef(clazz);
+    env->DeleteLocalRef(object);
+    return static_cast<void*>(reader);
+}
+
+void NRFrameSize (void* frameReaderPtr, int32_t* outWidth, int32_t* outHeight) {
+    // Get Java environment
+    JNIEnv* env = GetEnv();
+    if (!env)
+        return;
+    // Get frame size
+    jobject frameReader = static_cast<jobject>(frameReaderPtr);
+    jclass clazz = env->GetObjectClass(frameReader);
+    *outWidth = env->CallIntMethod(frameReader, env->GetMethodID(clazz, "frameWidth", "()I"));
+    *outHeight = env->CallIntMethod(frameReader, env->GetMethodID(clazz, "frameHeight", "()I"));
+    // Release
+    env->DeleteLocalRef(clazz);
+}
+
+float NRFrameRate (void* frameReaderPtr) {
+    // Get Java environment
+    JNIEnv* env = GetEnv();
+    if (!env)
+        return 0.f;
+    // Get frame rate
+    jobject reader = static_cast<jobject>(frameReaderPtr);
+    jclass clazz = env->GetObjectClass(reader);
+    jmethodID method = env->GetMethodID(clazz, "frameRate", "()F");
+    float value = env->CallFloatMethod(reader, method);
+    env->DeleteLocalRef(clazz);
+    return value;
 }
 #pragma endregion
 

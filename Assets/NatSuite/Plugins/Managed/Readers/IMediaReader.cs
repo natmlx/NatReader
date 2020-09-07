@@ -27,25 +27,9 @@ namespace NatSuite.Readers {
         /// <summary>
         /// Read frames in a time range.
         /// </summary>
-        /// <param name="startTime">Optional. Time to start reading samples in seconds.</param>
-        /// <param name="duration">Optional. Duration in seconds.</param>
-        IEnumerable<T> Read (float startTime = 0, float duration = -1);
-    }
-
-    /// <summary>
-    /// A reader capable of reading video frames from a video input.
-    /// All recorder methods are thread safe, and as such can be called from any thread.
-    /// </summary>
-    public interface IFrameReader : IMediaReader<(byte[] pixelBuffer, long timestamp)> {
-
-        /// <summary>
-        /// Frame size.
-        /// </summary>
-        (int width, int height) frameSize { get; }
-
-        /// <summary>
-        /// Frame rate.
-        /// </summary>
-        float frameRate { get; }
+        /// <param name="startTime">Time to start reading samples in seconds.</param>
+        /// <param name="duration">Duration in seconds.</param>
+        /// <param name="frameSkip">Number of frames to skip when reading.</param>
+        IEnumerable<T> Read (float startTime = 0, float duration = -1, int frameSkip = 0);
     }
 }

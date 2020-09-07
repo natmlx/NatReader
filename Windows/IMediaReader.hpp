@@ -27,7 +27,7 @@ class IMediaReader {
 		const std::string uri;
 };
 
-class MP4FrameReader : public IMediaReader {
+class MP4Reader : public IMediaReader {
 	public:
 		FrameReader (const wchar_t* uri, float startTime, float duration);
 		~FrameReader ();

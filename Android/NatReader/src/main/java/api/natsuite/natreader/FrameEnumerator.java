@@ -8,149 +8,229 @@ import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.opengl.Matrix;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 import java.nio.ByteBuffer;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.ArrayBlockingQueue;
 import api.natsuite.natrender.GLBlitEncoder;
 import api.natsuite.natrender.GLRenderContext;
 
-final class FrameEnumerator implements MediaEnumerator {
+public final class FrameEnumerator implements MediaEnumerator {
 
     private final MediaExtractor extractor;
-    private final ImageReader imageReader;
-    private long endTimestamp;
-    private final Semaphore feedFence = new Semaphore(0);
-    private final Semaphore readFence = new Semaphore(0);
+    private final ArrayBlockingQueue<Frame> framePool;
+    private final long endTimestamp;
+    private final int frameSkip;
+    private static final int POOL_LIMIT = 5;
 
-    public FrameEnumerator (final MediaExtractor extractor, final MediaFormat format, final float startTime, final float duration) {
+    private final HandlerThread decoderThread;
+    private final HandlerThread imageReaderThread;
+    private final ImageReader imageReader;
+    private final Handler imageReaderHandler;
+    private final GLRenderContext renderContext;
+    private final Handler renderContextHandler;
+
+    private int decoderOutputTextureID;
+    private SurfaceTexture decoderOutputTexture;
+    private Surface decoderOutputSurface;
+    private GLBlitEncoder blitEncoder;
+    private MediaCodec decoder;
+
+    public FrameEnumerator(final MediaExtractor extractor, final MediaFormat format, final float startTime, final float duration, final int frameSkip) {
         // Set time range
         final long startTimeUs = (long)(startTime * 1e+6);
         this.extractor = extractor;
-        this.endTimestamp = startTimeUs + (long)(duration * 1e+6);
+        this.framePool = new ArrayBlockingQueue<>(2 * POOL_LIMIT, false);
+        this.endTimestamp = duration > 0 ? startTimeUs + (long)(duration * 1e+6) : Long.MAX_VALUE;
+        this.frameSkip = frameSkip;
         extractor.seekTo(startTimeUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+        // Don't drop frames
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            format.setInteger("allow-frame-drop", 0);
         // Create image reader
-        final HandlerThread imageReaderThread = new HandlerThread("Frame Enumerator Thread");
-        imageReaderThread.start();
-        final Handler imageReaderHandler = new Handler(imageReaderThread.getLooper());
+        this.decoderThread = new HandlerThread("NatReader Decoder Thread");
+        this.decoderThread.start();
+        this.imageReaderThread = new HandlerThread("NatReader Reader Thread");
+        this.imageReaderThread.start();
+        this.imageReaderHandler = new Handler(imageReaderThread.getLooper());
         this.imageReader = ImageReader.newInstance(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT), PixelFormat.RGBA_8888, 2);
-        this.imageReader.setOnImageAvailableListener(unused -> readFence.release(), imageReaderHandler);
+        this.imageReader.setOnImageAvailableListener(i -> {
+            final Image image = imageReader.acquireLatestImage();
+            if (image == null)
+                return;
+            try {
+                final Frame frame = new Frame(image);
+                framePool.put(frame);
+                image.close();
+            } catch (Exception ex) {
+                Log.e("NatSuite", "NatReader Error: Frame enumerator failed to retrieve video frame", ex);
+            }
+        }, imageReaderHandler);
+        //this.imageReader.setOnImageAvailableListener(frameHandler, imageReaderHandler);
         // Setup render context
-        final GLRenderContext renderContext = new GLRenderContext(null, imageReader.getSurface(), false);
-        renderContext.start();
-        final Handler renderContextHandler = new Handler(renderContext.getLooper());
+        this.renderContext = new GLRenderContext(null, imageReader.getSurface(), false);
+        this.renderContext.start();
+        this.renderContextHandler = new Handler(renderContext.getLooper());
         // Create decoder
         renderContextHandler.post(() -> {
             // Create output texture
-            final int decoderOutputTextureID = GLBlitEncoder.getExternalTexture();
-            final SurfaceTexture decoderOutputTexture = new SurfaceTexture(decoderOutputTextureID);
-            final Surface decoderOutputSurface = new Surface(decoderOutputTexture);
-            final GLBlitEncoder blitEncoder = GLBlitEncoder.externalBlitEncoder();
-            // Set frame handler
-            decoderOutputTexture.setOnFrameAvailableListener(
-                surfaceTexture -> {
-                    // Update transform
-                    final float[] transform = new float[16];
-                    surfaceTexture.updateTexImage();
-                    surfaceTexture.getTransformMatrix(transform);
-                    Matrix.translateM(transform, 0, 0.5f, 0.5f, 0.f);
-                    Matrix.scaleM(transform, 0, 1, -1, 1);
-                    Matrix.translateM(transform, 0, -0.5f, -0.5f, 0.f);
-                    // Blit
-                    blitEncoder.blit(decoderOutputTextureID, transform);
-                    renderContext.setPresentationTime(surfaceTexture.getTimestamp());
-                    renderContext.swapBuffers();
-                },
-                renderContextHandler
-            );
-            // Decoding thread
-            new Thread(() -> {
+            decoderOutputTextureID = GLBlitEncoder.getExternalTexture();
+            decoderOutputTexture = new SurfaceTexture(decoderOutputTextureID);
+            decoderOutputSurface = new Surface(decoderOutputTexture);
+            blitEncoder = GLBlitEncoder.externalBlitEncoder();
+            // Setup frame delegate
+            decoderOutputTexture.setOnFrameAvailableListener(surfaceTexture -> {
+                // Update transform
+                final float[] transform = new float[16];
+                surfaceTexture.updateTexImage();
+                surfaceTexture.getTransformMatrix(transform);
+                Matrix.translateM(transform, 0, 0.5f, 0.5f, 0.f);
+                Matrix.scaleM(transform, 0, 1, -1, 1);
+                Matrix.translateM(transform, 0, -0.5f, -0.5f, 0.f);
+                // Blit
+                blitEncoder.blit(decoderOutputTextureID, transform);
+                renderContext.setPresentationTime(surfaceTexture.getTimestamp());
+                renderContext.swapBuffers();
+            }, renderContextHandler);
+            try {
                 // Create decoder
-                final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-                final MediaCodec decoder;
-                try {
-                    decoder = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME));
-                    decoder.configure(format, decoderOutputSurface, null, 0);
-                    decoder.start();
-                }
-                catch (Exception ex) {
-                    Log.e("NatSuite", "NatReader Error: FrameEnumerator failed to create decoder with error: " + ex);
-                    readFence.release();
-                    renderContextHandler.post(() -> {
-                        blitEncoder.release();
-                        decoderOutputSurface.release();
-                        decoderOutputTexture.release();
-                        GLBlitEncoder.releaseTexture(decoderOutputTextureID);
-                    });
-                    renderContext.quitSafely();
-                    imageReader.close();
-                    imageReaderThread.quitSafely();
-                    return;
-                }
-                // Feed decoder
-                while (true) {
-                    // Check for new frame
-                    int outBufferIndex = decoder.dequeueOutputBuffer(bufferInfo, 0L);
-                    if (outBufferIndex >= 0) {
-                        decoder.releaseOutputBuffer(outBufferIndex, true);
-                        try { feedFence.acquire(); } catch (InterruptedException ex) { }
-                    }
-                    // Dequeue
-                    final int bufferIndex = decoder.dequeueInputBuffer(-1L);
-                    final ByteBuffer inputBuffer = decoder.getInputBuffer(bufferIndex);
-                    final int dataSize = extractor.readSampleData(inputBuffer, 0);
-                    final long sampleTime = extractor.getSampleTime();
-                    // Check for EOS
-                    if (dataSize < 0 || sampleTime > endTimestamp)
-                        break;
-                    // Commit
-                    decoder.queueInputBuffer(bufferIndex, 0, dataSize, sampleTime, extractor.getSampleFlags());
-                    extractor.advance();
-                }
-                // Release decoder and everything else
-                decoder.stop();
-                decoder.release();
-                renderContextHandler.post(() -> {
-                    blitEncoder.release();
-                    decoderOutputSurface.release();
-                    decoderOutputTexture.release();
-                    GLBlitEncoder.releaseTexture(decoderOutputTextureID);
-                });
-                renderContext.quitSafely();
-                imageReader.close();
-                imageReaderThread.quitSafely();
-            }).start();
+                decoder = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME));
+                decoder.setCallback(decoderCallback, new Handler(decoderThread.getLooper()));
+                decoder.configure(format, decoderOutputSurface, null, 0);
+                decoder.start();
+            }
+            catch (Exception ex) {
+                Log.e("NatSuite", "NatReader Error: FrameEnumerator failed to create decoder with error: " + ex);
+            }
         });
     }
 
     @Override
-    public long copyNextFrame (final ByteBuffer dstBuffer) {
+    public synchronized long copyNextFrame (final ByteBuffer dstBuffer) { // CHECK // EOS actually drops one or two frames
         try {
-            readFence.acquire();
-            feedFence.release();
-            final Image image = imageReader.acquireLatestImage();
-            final Image.Plane imagePlane = image.getPlanes()[0];
-            final ByteBuffer srcBuffer = imagePlane.getBuffer();
-            final long timestamp = image.getTimestamp();
-            GLBlitEncoder.copyFrame(srcBuffer, image.getWidth(), image.getHeight(), imagePlane.getRowStride(), dstBuffer);
-            dstBuffer.rewind();
-            dstBuffer.limit(image.getWidth() * image.getHeight() * 4);
-            image.close();
-            return timestamp;
-        } catch (NullPointerException ex) {
-            dstBuffer.limit(0);
-            return -1L;
-        } catch (Exception ex) {
-            Log.e("NatSuite", "NatReader Error: FrameEnumerator encountered error when copying frame", ex);
-            dstBuffer.limit(0);
+            final Frame frame = framePool.take();
+            if (frame == Frame.EOS)
+                return -1L;
+            GLBlitEncoder.copyFrame(frame.pixelBuffer, frame.width, frame.height, frame.width * 4, dstBuffer); // Should be one block `memcpy`
+            return frame.timestamp;
+        } catch (InterruptedException ex) {
+            Log.e("NatSuite", "NatReader Error: Frame enumerator failed to copy frame", ex);
             return -1L;
         }
     }
 
-    public void release () {
-        endTimestamp = extractor.getSampleTime() - 10L; // Nice little trick
-        feedFence.release();
+    @Override
+    public synchronized void release () {
+        try {
+            // Stop decoder handler
+            decoderThread.quitSafely();
+            // Release rendering resources
+            renderContextHandler.post(() -> {
+                blitEncoder.release();
+                decoderOutputSurface.release();
+                decoderOutputTexture.release();
+                GLBlitEncoder.releaseTexture(decoderOutputTextureID);
+            });
+            renderContext.quitSafely();
+            // Release image reader
+            imageReader.close();
+            imageReaderThread.quitSafely();
+            framePool.clear();
+            // Stop decoder
+            decoder.stop();
+            decoder.release();
+        } catch (Exception ex) {
+            Log.e("NatSuite", "NatReader Error: Frame enumerator encountered error on release", ex);
+        }
+    }
+
+    private final MediaCodec.Callback decoderCallback = new MediaCodec.Callback () {
+
+        private int frameIndex = 0;
+
+        @Override
+        public void onInputBufferAvailable (MediaCodec codec, int bufferIndex) {
+            final ByteBuffer inputBuffer = codec.getInputBuffer(bufferIndex);
+            final int dataSize = extractor.readSampleData(inputBuffer, 0);
+            final long sampleTime = extractor.getSampleTime();
+            if (dataSize >= 0 && sampleTime <= endTimestamp)
+                codec.queueInputBuffer(bufferIndex, 0, dataSize, sampleTime, extractor.getSampleFlags());
+            else
+                codec.queueInputBuffer(bufferIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+            extractor.advance();
+        }
+
+        @Override
+        public void onOutputBufferAvailable (MediaCodec codec, int bufferIndex, MediaCodec.BufferInfo bufferInfo) {
+            // Check for frame skip
+            if (frameIndex++ % (frameSkip + 1) == 0) {
+                waitUntil(() -> framePool.size() < POOL_LIMIT); // not a one-to-one guarantee
+                codec.releaseOutputBuffer(bufferIndex, true);
+            }
+            // Discard
+            else
+                codec.releaseOutputBuffer(bufferIndex, false);
+            // Check EOS
+            boolean eos = (bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0;
+            if (eos)
+                imageReaderHandler.post(() -> {
+                    try {
+                        framePool.put(Frame.EOS);
+                    } catch (InterruptedException ex) {
+                        Log.e("NatSuite", "NatReader Error: Frame enumerator failed to signal EOS", ex);
+                    }
+                });
+        }
+
+        @Override
+        public void onError (MediaCodec codec, MediaCodec.CodecException error) {
+            Log.e("NatSuite", "NatReader Error: Frame enumerator decoder encountered error", error);
+        }
+
+        @Override
+        public void onOutputFormatChanged (MediaCodec codec, MediaFormat mediaFormat) { } // don't care
+    };
+
+    interface Predicate {
+        boolean get ();
+    }
+
+    private static void waitUntil (Predicate condition) {
+        try {
+            while (!condition.get())
+                Thread.sleep(5);
+        } catch (InterruptedException ex) { }
+    }
+
+    private static final class Frame {
+
+        public final ByteBuffer pixelBuffer;
+        public final int width;
+        public final int height;
+        public final long timestamp;
+        public static final Frame EOS = new Frame();
+
+        private Frame () {
+            this.pixelBuffer = null;
+            this.width = 0;
+            this.height = 0;
+            this.timestamp = 0;
+        }
+
+        public Frame (Image image) {
+            Image.Plane imagePlane = image.getPlanes()[0];
+            ByteBuffer srcBuffer = imagePlane.getBuffer();
+            this.width = image.getWidth();
+            this.height = image.getHeight();
+            this.timestamp = image.getTimestamp();
+            this.pixelBuffer = ByteBuffer.allocateDirect(width * height * 4);
+            GLBlitEncoder.copyFrame(srcBuffer, width, height, imagePlane.getRowStride(), pixelBuffer);
+            pixelBuffer.rewind();
+            pixelBuffer.limit(width * height * 4);
+            Log.d("NatSuite", "Frame enumerator created frame for time: "+(timestamp / 1e+9));
+        }
     }
 }

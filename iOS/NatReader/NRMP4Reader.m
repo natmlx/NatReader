@@ -2,7 +2,7 @@
 //  NRMP4FrameReader.m
 //  NatReader
 //
-//  Created by Yusuf Olokoba on 10/3/19.
+//  Created by Yusuf Olokoba on 9/23/19.
 //  Copyright © 2020 Yusuf Olokoba. All rights reserved.
 //
 
@@ -10,7 +10,7 @@
 @import AVFoundation;
 #import "NRMediaReader.h"
 
-@interface NRMP4FrameReader ()
+@interface NRMP4Reader ()
 @property AVURLAsset* asset;
 @property AVAssetTrack* videoTrack;
 @end
@@ -18,11 +18,12 @@
 @interface NRAVAssetReaderEnumerator : NSObject <NRMediaEnumerator>
 @property AVAssetReader* reader;
 @property AVAssetReaderTrackOutput* readerOutput;
-+ (instancetype) enumeratorWithAsset:(AVAsset*) asset track:(AVAssetTrack*) track andTimeRange:(CMTimeRange) timeRange;
+@property int frameSkip;
++ (instancetype) enumeratorWithAsset:(AVAsset*) asset track:(AVAssetTrack*) track timeRange:(CMTimeRange) timeRange andFrameSkip:(int) frameSkip;
 @end
 
 
-@implementation NRMP4FrameReader
+@implementation NRMP4Reader
 
 @synthesize asset;
 @synthesize videoTrack;
@@ -52,8 +53,11 @@
     return videoTrack.nominalFrameRate;
 }
 
-- (id<NRMediaEnumerator>) createEnumeratorForTimeRange:(CMTimeRange) timeRange {
-    return asset.readable && videoTrack ? [NRAVAssetReaderEnumerator enumeratorWithAsset:asset track:videoTrack andTimeRange:timeRange] : nil;
+- (id<NRMediaEnumerator>) createEnumeratorForTimeRange:(CMTimeRange) timeRange withFrameSkip:(int) frameSkip {
+    if (asset.readable && videoTrack)
+        return [NRAVAssetReaderEnumerator enumeratorWithAsset:asset track:videoTrack timeRange:timeRange andFrameSkip:frameSkip];
+    else
+        return nil;
 }
 
 @end
@@ -61,7 +65,7 @@
 
 @implementation NRAVAssetReaderEnumerator
 
-+ (instancetype) enumeratorWithAsset:(AVAsset*) asset track:(AVAssetTrack*) track andTimeRange:(CMTimeRange) timeRange {
++ (instancetype) enumeratorWithAsset:(AVAsset*) asset track:(AVAssetTrack*) track timeRange:(CMTimeRange) timeRange andFrameSkip:(int) frameSkip { // INCOMPLETE // Frame skip
     NSError* error;
     AVAssetReader* reader = [AVAssetReader.alloc initWithAsset:asset error:&error];
     if (error) {
@@ -80,6 +84,7 @@
     NRAVAssetReaderEnumerator* enumerator = NRAVAssetReaderEnumerator.alloc.init;
     enumerator.reader = reader;
     enumerator.readerOutput = readerOutput;
+    enumerator.frameSkip = frameSkip;
     return enumerator;
 }
 
@@ -88,7 +93,9 @@
 }
 
 - (void) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outBufferSize andTimestamp:(int64_t*) outTimestamp {
-    CMSampleBufferRef sampleBuffer = self.readerOutput.copyNextSampleBuffer;
+    CMSampleBufferRef sampleBuffer = NULL;
+    for (int i = 0; i <= self.frameSkip; i++)
+        sampleBuffer = self.readerOutput.copyNextSampleBuffer;
     if (!sampleBuffer) {
         *outBufferSize = 0;
         *outTimestamp = -1L;

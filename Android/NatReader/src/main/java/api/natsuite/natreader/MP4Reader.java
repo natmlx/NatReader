@@ -2,15 +2,14 @@ package api.natsuite.natreader;
 
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
-import android.os.Build;
 import android.util.Log;
 import java.io.IOException;
 
-public final class MP4FrameReader implements FrameReader {
+public final class MP4Reader implements FrameReader {
 
     //region --Client API--
 
-    public MP4FrameReader (String uri) {
+    public MP4Reader (String uri) {
         this.uri = uri;
         this.extractor = new MediaExtractor();
         MediaFormat format = null;
@@ -23,6 +22,8 @@ public final class MP4FrameReader implements FrameReader {
             Log.e("NatSuite", "NatReader Error: MP4FrameReader failed to create media extractor with error: " + ex);
         }
         this.format = format;
+        if (this.format != null)
+            Log.d("NatSuite", "NatReader: Initialized MP4FrameReader for video with duration "+duration()+"s and size "+frameWidth()+"x"+frameHeight()+"@"+frameRate()+"Hz");
     }
 
     @Override
@@ -47,12 +48,15 @@ public final class MP4FrameReader implements FrameReader {
 
     @Override
     public float frameRate () {
-        return format != null ? Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? format.getInteger(MediaFormat.KEY_FRAME_RATE) : 30 : 0; // Default to 30
+        return format != null ? format.getInteger(MediaFormat.KEY_FRAME_RATE) : 0;
     }
 
     @Override
-    public MediaEnumerator createEnumerator (float startTime, float duration) {
-        return format != null ? new FrameEnumerator2(extractor, format, startTime, duration) : null;
+    public MediaEnumerator createEnumerator (float startTime, float duration, int frameSkip) {
+        if (format != null)
+            return new FrameEnumerator(extractor, format, startTime, duration, frameSkip);
+        else
+            return null;
     }
 
     @Override

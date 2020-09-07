@@ -76,9 +76,12 @@ BRIDGE EXPORT float APIENTRY NRMediaDuration (void* reader);
  Media time to start reading samples in seconds.
     
  @param duration
- Duration in seconds.
+ Duration in seconds. If negative, the enumerator will read till the end of the media stream.
+ 
+ @param frameSkip
+ Number of frames to skip when reading.
  */
-BRIDGE EXPORT void* APIENTRY NRCreateEnumerator (void* reader, float startTime, float duration);
+BRIDGE EXPORT void* APIENTRY NRCreateEnumerator (void* reader, float startTime, float duration, int frameSkip);
 #pragma endregion
 
 
@@ -120,16 +123,16 @@ BRIDGE EXPORT void APIENTRY NRCopyNextFrame (void* enumerator, void* dstBuffer, 
 
 #pragma region --FrameReader--
 /*!
- @function NRCreateMP4FrameReader
+ @function NRCreateMP4Reader
  
- @abstract Create an MP4 frame reader.
+ @abstract Create an MP4 reader.
  
- @discussion Create an MP4 frame reader.
+ @discussion Create an MP4 reader.
  
  @param uri
  URL to media source. MUST be prepended with URI scheme/protocol.
  */
-BRIDGE EXPORT void* APIENTRY NRCreateMP4FrameReader (const char* uri);
+BRIDGE EXPORT void* APIENTRY NRCreateMP4Reader (const char* uri);
 
 /*!
  @function NRFrameSize
