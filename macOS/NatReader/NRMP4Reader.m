@@ -18,6 +18,7 @@
 @interface NRAVAssetReaderEnumerator : NSObject <NRMediaEnumerator>
 @property AVAssetReader* reader;
 @property AVAssetReaderTrackOutput* readerOutput;
+@property int frameSkip;
 + (instancetype) enumeratorWithAsset:(AVAsset*) asset track:(AVAssetTrack*) track timeRange:(CMTimeRange) timeRange andFrameSkip:(int) frameSkip;
 @end
 
@@ -83,6 +84,7 @@
     NRAVAssetReaderEnumerator* enumerator = NRAVAssetReaderEnumerator.alloc.init;
     enumerator.reader = reader;
     enumerator.readerOutput = readerOutput;
+    enumerator.frameSkip = frameSkip;
     return enumerator;
 }
 
@@ -91,7 +93,9 @@
 }
 
 - (void) copyNextFrame:(void*) dstBuffer withSize:(int32_t*) outBufferSize andTimestamp:(int64_t*) outTimestamp {
-    CMSampleBufferRef sampleBuffer = self.readerOutput.copyNextSampleBuffer;
+    CMSampleBufferRef sampleBuffer = NULL;
+    for (int i = 0; i <= self.frameSkip; i++)
+        sampleBuffer = self.readerOutput.copyNextSampleBuffer;
     if (!sampleBuffer) {
         *outBufferSize = 0;
         *outTimestamp = -1L;
