@@ -2,18 +2,14 @@ package api.natsuite.natreader;
 
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
-import android.os.Build;
 import android.util.Log;
 import java.io.IOException;
 
-import api.natsuite.natreader.enumerators.FrameEnumerator2;
-import api.natsuite.natreader.enumerators.FrameEnumerator3;
-
-public final class MP4FrameReader implements FrameReader {
+public final class MP4Reader implements FrameReader {
 
     //region --Client API--
 
-    public MP4FrameReader (String uri) {
+    public MP4Reader (String uri) {
         this.uri = uri;
         this.extractor = new MediaExtractor();
         MediaFormat format = null;
@@ -58,7 +54,7 @@ public final class MP4FrameReader implements FrameReader {
     @Override
     public MediaEnumerator createEnumerator (float startTime, float duration, int frameSkip) {
         if (format != null)
-            return new FrameEnumerator3(extractor, format, startTime, duration, frameSkip);
+            return new FrameEnumerator(extractor, format, startTime, duration, frameSkip);
         else
             return null;
     }

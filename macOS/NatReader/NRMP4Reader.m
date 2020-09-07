@@ -2,7 +2,7 @@
 //  NRMP4FrameReader.m
 //  NatReader
 //
-//  Created by Yusuf Olokoba on 9/23/19.
+//  Created by Yusuf Olokoba on 10/3/19.
 //  Copyright © 2020 Yusuf Olokoba. All rights reserved.
 //
 
@@ -10,7 +10,7 @@
 @import AVFoundation;
 #import "NRMediaReader.h"
 
-@interface NRMP4FrameReader ()
+@interface NRMP4Reader ()
 @property AVURLAsset* asset;
 @property AVAssetTrack* videoTrack;
 @end
@@ -22,7 +22,7 @@
 @end
 
 
-@implementation NRMP4FrameReader
+@implementation NRMP4Reader
 
 @synthesize asset;
 @synthesize videoTrack;

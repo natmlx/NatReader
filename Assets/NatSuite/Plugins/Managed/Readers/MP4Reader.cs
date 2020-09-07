@@ -54,7 +54,7 @@ namespace NatSuite.Readers {
         /// Create an MP4 frame reader.
         /// </summary>
         /// <param name="uri">URL to media source. MUST be prepended with URI scheme/protocol.</param>
-        public MP4Reader (string uri) => this.reader = Bridge.CreateMP4FrameReader(uri);
+        public MP4Reader (string uri) => this.reader = Bridge.CreateMP4Reader(uri);
         
         /// <summary>
         /// Dispose the reader and release resources.
@@ -76,7 +76,8 @@ namespace NatSuite.Readers {
             }
             // Read
             try {
-                for (var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];;) {
+                var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];
+                for (;;) {
                     var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
                     enumerator.CopyNextFrame(handle.AddrOfPinnedObject(), out var _, out var timestamp);
                     handle.Free();

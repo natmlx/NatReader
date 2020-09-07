@@ -1,4 +1,4 @@
-package api.natsuite.natreader.enumerators;
+package api.natsuite.natreader;
 
 import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
@@ -15,11 +15,10 @@ import android.util.Log;
 import android.view.Surface;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
-import api.natsuite.natreader.MediaEnumerator;
 import api.natsuite.natrender.GLBlitEncoder;
 import api.natsuite.natrender.GLRenderContext;
 
-public final class FrameEnumerator3 implements MediaEnumerator {
+public final class FrameEnumerator implements MediaEnumerator {
 
     private final MediaExtractor extractor;
     private final ArrayBlockingQueue<Frame> framePool;
@@ -40,7 +39,7 @@ public final class FrameEnumerator3 implements MediaEnumerator {
     private GLBlitEncoder blitEncoder;
     private MediaCodec decoder;
 
-    public FrameEnumerator3 (final MediaExtractor extractor, final MediaFormat format, final float startTime, final float duration, final int frameSkip) {
+    public FrameEnumerator(final MediaExtractor extractor, final MediaFormat format, final float startTime, final float duration, final int frameSkip) {
         // Set time range
         final long startTimeUs = (long)(startTime * 1e+6);
         this.extractor = extractor;
@@ -58,7 +57,19 @@ public final class FrameEnumerator3 implements MediaEnumerator {
         this.imageReaderThread.start();
         this.imageReaderHandler = new Handler(imageReaderThread.getLooper());
         this.imageReader = ImageReader.newInstance(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT), PixelFormat.RGBA_8888, 2);
-        this.imageReader.setOnImageAvailableListener(frameHandler, imageReaderHandler);
+        this.imageReader.setOnImageAvailableListener(i -> {
+            final Image image = imageReader.acquireLatestImage();
+            if (image == null)
+                return;
+            try {
+                final Frame frame = new Frame(image);
+                framePool.put(frame);
+                image.close();
+            } catch (Exception ex) {
+                Log.e("NatSuite", "NatReader Error: Frame enumerator failed to retrieve video frame", ex);
+            }
+        }, imageReaderHandler);
+        //this.imageReader.setOnImageAvailableListener(frameHandler, imageReaderHandler);
         // Setup render context
         this.renderContext = new GLRenderContext(null, imageReader.getSurface(), false);
         this.renderContext.start();
@@ -98,9 +109,11 @@ public final class FrameEnumerator3 implements MediaEnumerator {
     }
 
     @Override
-    public long copyNextFrame (final ByteBuffer dstBuffer) { // INCOMPLETE // How to know when no frames left?? EOS.
+    public synchronized long copyNextFrame (final ByteBuffer dstBuffer) { // CHECK // EOS actually drops one or two frames
         try {
             final Frame frame = framePool.take();
+            if (frame == Frame.EOS)
+                return -1L;
             GLBlitEncoder.copyFrame(frame.pixelBuffer, frame.width, frame.height, frame.width * 4, dstBuffer); // Should be one block `memcpy`
             return frame.timestamp;
         } catch (InterruptedException ex) {
@@ -110,7 +123,7 @@ public final class FrameEnumerator3 implements MediaEnumerator {
     }
 
     @Override
-    public void release () {
+    public synchronized void release () {
         try {
             // Stop decoder handler
             decoderThread.quitSafely();
@@ -122,10 +135,10 @@ public final class FrameEnumerator3 implements MediaEnumerator {
                 GLBlitEncoder.releaseTexture(decoderOutputTextureID);
             });
             renderContext.quitSafely();
-            //renderContext.join(); // meh, not necessary
             // Release image reader
             imageReader.close();
             imageReaderThread.quitSafely();
+            framePool.clear();
             // Stop decoder
             decoder.stop();
             decoder.release();
@@ -133,23 +146,6 @@ public final class FrameEnumerator3 implements MediaEnumerator {
             Log.e("NatSuite", "NatReader Error: Frame enumerator encountered error on release", ex);
         }
     }
-
-    private final ImageReader.OnImageAvailableListener frameHandler = new ImageReader.OnImageAvailableListener () {
-
-        @Override
-        public void onImageAvailable (ImageReader imageReader) {
-            try {
-                final Image image = imageReader.acquireLatestImage();
-                if (image != null) {
-                    final Frame frame = new Frame(image);
-                    framePool.put(frame);
-                    image.close();
-                }
-            } catch (Exception ex) {
-                Log.e("NatSuite", "NatReader Error: Frame enumerator failed to retrieve video frame", ex);
-            }
-        }
-    };
 
     private final MediaCodec.Callback decoderCallback = new MediaCodec.Callback () {
 
@@ -162,6 +158,8 @@ public final class FrameEnumerator3 implements MediaEnumerator {
             final long sampleTime = extractor.getSampleTime();
             if (dataSize >= 0 && sampleTime <= endTimestamp)
                 codec.queueInputBuffer(bufferIndex, 0, dataSize, sampleTime, extractor.getSampleFlags());
+            else
+                codec.queueInputBuffer(bufferIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
             extractor.advance();
         }
 
@@ -175,6 +173,16 @@ public final class FrameEnumerator3 implements MediaEnumerator {
             // Discard
             else
                 codec.releaseOutputBuffer(bufferIndex, false);
+            // Check EOS
+            boolean eos = (bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0;
+            if (eos)
+                imageReaderHandler.post(() -> {
+                    try {
+                        framePool.put(Frame.EOS);
+                    } catch (InterruptedException ex) {
+                        Log.e("NatSuite", "NatReader Error: Frame enumerator failed to signal EOS", ex);
+                    }
+                });
         }
 
         @Override
@@ -203,6 +211,14 @@ public final class FrameEnumerator3 implements MediaEnumerator {
         public final int width;
         public final int height;
         public final long timestamp;
+        public static final Frame EOS = new Frame();
+
+        private Frame () {
+            this.pixelBuffer = null;
+            this.width = 0;
+            this.height = 0;
+            this.timestamp = 0;
+        }
 
         public Frame (Image image) {
             Image.Plane imagePlane = image.getPlanes()[0];

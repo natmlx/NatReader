@@ -43,9 +43,9 @@ void NRCopyNextFrame (void* enumeratorPtr, void* buffer, int32_t* outBufferSize,
     [enumerator copyNextFrame:buffer withSize:outBufferSize andTimestamp:outTimestamp];
 }
 
-void* NRCreateMP4FrameReader (const char* url) {
+void* NRCreateMP4Reader (const char* url) {
     NSURL* uri = [NSURL URLWithString:[NSString stringWithUTF8String:url]];
-    NRMP4FrameReader* reader = [NRMP4FrameReader.alloc initWithURI:uri];
+    NRMP4Reader* reader = [NRMP4Reader.alloc initWithURI:uri];
     return (__bridge_retained void*)reader;
 }
 

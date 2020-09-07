@@ -9,9 +9,9 @@
 #include "pch.hpp"
 #include "IMediaReader.hpp"
 
-bool MP4FrameReader::initializedMF = false;
+bool MP4Reader::initializedMF = false;
 
-MP4FrameReader::MP4FrameReader (const wchar_t* uri, float startTime, float duration) {
+MP4Reader::MP4Reader (const wchar_t* uri, float startTime, float duration) {
 	// Initialize MediaFoundation
 	if (!initializedMF) {
 		CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);

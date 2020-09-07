@@ -115,14 +115,14 @@ void NRCopyNextFrame (void* enumeratorPtr, void* buffer, int32_t* outBufferSize,
     env->DeleteLocalRef(bbClazz);
 }
 
-void* NRCreateMP4FrameReader (const char* uri) {
+void* NRCreateMP4Reader (const char* uri) {
     // Get Java environment
     JNIEnv* env = GetEnv();
     if (!env)
         return nullptr;
     // Create reader
     jstring path = env->NewStringUTF(uri);
-    jclass clazz = env->FindClass("api/natsuite/natreader/MP4FrameReader");
+    jclass clazz = env->FindClass("api/natsuite/natreader/MP4Reader");
     jmethodID constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;)V");
     jobject object = env->NewObject(clazz, constructor, path);
     jobject reader = env->NewGlobalRef(object);

@@ -10,10 +10,6 @@
 #include "NatReader.h"
 #include "IMediaReader.hpp"
 
-void* NRCreateMP4FrameReader (const char* recordingPath, float startTime, float duration) {
-	return static_cast<void*>(new MP4FrameReader(recordingPath, startTime, duration));
-}
-
 void NRMediaURI (void* readerPtr, char* dstString) {
 	IMediaReader* reader = static_cast<IMediaReader*>(readerPtr);
 	strcpy(dstString, reader->uri);
@@ -37,6 +33,10 @@ void NRReset (void* readerPtr) {
 void NRDispose (void* readerPtr) {
 	IMediaReader* reader = static_cast<IMediaReader*>(readerPtr);
 	delete reader;
+}
+
+void* NRCreateMP4FrameReader (const char* recordingPath, float startTime, float duration) {
+	return static_cast<void*>(new MP4FrameReader(recordingPath, startTime, duration));
 }
 
 void NRFrameSize (void* readerPtr, int32_t* width, int32_t* height) {

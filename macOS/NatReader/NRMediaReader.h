@@ -28,6 +28,6 @@
 - (void) dispose;
 @end
 
-@interface NRMP4FrameReader : NSObject <NRFrameReader>
+@interface NRMP4Reader : NSObject <NRFrameReader>
 - (instancetype) initWithURI:(NSURL*) uri;
 @end
