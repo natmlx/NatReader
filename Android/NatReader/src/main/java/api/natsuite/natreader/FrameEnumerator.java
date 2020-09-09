@@ -69,7 +69,6 @@ public final class FrameEnumerator implements MediaEnumerator {
                 Log.e("NatSuite", "NatReader Error: Frame enumerator failed to retrieve video frame", ex);
             }
         }, imageReaderHandler);
-        //this.imageReader.setOnImageAvailableListener(frameHandler, imageReaderHandler);
         // Setup render context
         this.renderContext = new GLRenderContext(null, imageReader.getSurface(), false);
         this.renderContext.start();
@@ -230,7 +229,7 @@ public final class FrameEnumerator implements MediaEnumerator {
             GLBlitEncoder.copyFrame(srcBuffer, width, height, imagePlane.getRowStride(), pixelBuffer);
             pixelBuffer.rewind();
             pixelBuffer.limit(width * height * 4);
-            Log.d("NatSuite", "Frame enumerator created frame for time: "+(timestamp / 1e+9));
+            //Log.d("NatSuite", "Frame enumerator created frame for time: "+(timestamp / 1e+9));
         }
     }
 }

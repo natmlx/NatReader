@@ -14,11 +14,11 @@ using (var reader = new MP4FrameReader(videoPath))
 
 ## Requirements
 - Unity 2018.3+
-- Android API Level 21+
+- Android API Level 23+
 - iOS 11+
 - macOS 10.13+
 
 ## Notes
-- On Android, `MP4FrameReader` may support decoding frames from a remote URL.
+- On Android, `MP4Reader` may support decoding frames from a remote URL.
 
 Thank you!
