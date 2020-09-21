@@ -18,7 +18,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import api.natsuite.natrender.GLBlitEncoder;
 import api.natsuite.natrender.GLRenderContext;
 
-public final class FrameEnumerator implements MediaEnumerator {
+final class FrameEnumerator implements MediaEnumerator {
 
     private final MediaExtractor extractor;
     private final ArrayBlockingQueue<Frame> framePool;
@@ -56,15 +56,15 @@ public final class FrameEnumerator implements MediaEnumerator {
         this.imageReaderThread = new HandlerThread("NatReader Reader Thread");
         this.imageReaderThread.start();
         this.imageReaderHandler = new Handler(imageReaderThread.getLooper());
-        this.imageReader = ImageReader.newInstance(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT), PixelFormat.RGBA_8888, 2);
+        this.imageReader = ImageReader.newInstance(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT), PixelFormat.RGBA_8888, 3);
         this.imageReader.setOnImageAvailableListener(i -> {
-            final Image image = imageReader.acquireLatestImage();
-            if (image == null)
-                return;
             try {
-                final Frame frame = new Frame(image);
-                framePool.put(frame);
-                image.close();
+                Image image;
+                while ((image = imageReader.acquireNextImage()) != null) {
+                    Frame frame = new Frame(image);
+                    image.close();
+                    framePool.put(frame);
+                }
             } catch (Exception ex) {
                 Log.e("NatSuite", "NatReader Error: Frame enumerator failed to retrieve video frame", ex);
             }
@@ -82,9 +82,9 @@ public final class FrameEnumerator implements MediaEnumerator {
             blitEncoder = GLBlitEncoder.externalBlitEncoder();
             // Setup frame delegate
             decoderOutputTexture.setOnFrameAvailableListener(surfaceTexture -> {
+                surfaceTexture.updateTexImage();
                 // Update transform
                 final float[] transform = new float[16];
-                surfaceTexture.updateTexImage();
                 surfaceTexture.getTransformMatrix(transform);
                 Matrix.translateM(transform, 0, 0.5f, 0.5f, 0.f);
                 Matrix.scaleM(transform, 0, 1, -1, 1);
@@ -100,15 +100,14 @@ public final class FrameEnumerator implements MediaEnumerator {
                 decoder.setCallback(decoderCallback, new Handler(decoderThread.getLooper()));
                 decoder.configure(format, decoderOutputSurface, null, 0);
                 decoder.start();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Log.e("NatSuite", "NatReader Error: FrameEnumerator failed to create decoder with error: " + ex);
             }
         });
     }
 
     @Override
-    public synchronized long copyNextFrame (final ByteBuffer dstBuffer) { // CHECK // EOS actually drops one or two frames
+    public long copyNextFrame (final ByteBuffer dstBuffer) { // CHECK // EOS actually drops one or two frames
         try {
             final Frame frame = framePool.take();
             if (frame == Frame.EOS)
@@ -135,8 +134,10 @@ public final class FrameEnumerator implements MediaEnumerator {
             });
             renderContext.quitSafely();
             // Release image reader
-            imageReader.close();
+            imageReader.setOnImageAvailableListener(null, imageReaderHandler);
             imageReaderThread.quitSafely();
+            imageReaderThread.join(); // ensure handler has finished all processing
+            imageReader.close();
             framePool.clear();
             // Stop decoder
             decoder.stop();
@@ -178,7 +179,7 @@ public final class FrameEnumerator implements MediaEnumerator {
                 imageReaderHandler.post(() -> {
                     try {
                         framePool.put(Frame.EOS);
-                    } catch (InterruptedException ex) {
+                    } catch (Exception ex) {
                         Log.e("NatSuite", "NatReader Error: Frame enumerator failed to signal EOS", ex);
                     }
                 });

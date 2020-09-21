@@ -3,13 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		8868FADE233924CD002902FE /* NRMP4Reader.m in Sources */ = {isa = PBXBuildFile; fileRef = 8868FADD233924CD002902FE /* NRMP4Reader.m */; };
 		8868FAE6233924DC002902FE /* Bridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 8868FAE5233924DC002902FE /* Bridge.m */; };
-		8868FAE7233929FB002902FE /* libNatReader.a in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8868FAD9233924CD002902FE /* libNatReader.a */; };
+		8868FAE7233929FB002902FE /* libNatReader.a in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8868FAD9233924CD002902FE /* libNatReader.a */; platformFilter = ios; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -252,6 +252,7 @@
 				BITCODE_GENERATION_MODE = bitcode;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = NPA3XMW8F9;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -266,6 +267,7 @@
 				BITCODE_GENERATION_MODE = bitcode;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = NPA3XMW8F9;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
