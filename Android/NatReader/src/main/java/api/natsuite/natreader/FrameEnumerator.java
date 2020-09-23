@@ -56,7 +56,7 @@ final class FrameEnumerator implements MediaEnumerator {
         this.imageReaderThread = new HandlerThread("NatReader Reader Thread");
         this.imageReaderThread.start();
         this.imageReaderHandler = new Handler(imageReaderThread.getLooper());
-        this.imageReader = ImageReader.newInstance(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT), PixelFormat.RGBA_8888, 3);
+        this.imageReader = ImageReader.newInstance(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT), PixelFormat.RGBA_8888, 2);
         this.imageReader.setOnImageAvailableListener(i -> {
             try {
                 Image image;
@@ -123,7 +123,9 @@ final class FrameEnumerator implements MediaEnumerator {
     @Override
     public synchronized void release () {
         try {
-            // Stop decoder handler
+            // Stop decoder
+            decoder.stop();
+            decoder.release();
             decoderThread.quitSafely();
             // Release rendering resources
             renderContextHandler.post(() -> {
@@ -135,13 +137,9 @@ final class FrameEnumerator implements MediaEnumerator {
             renderContext.quitSafely();
             // Release image reader
             imageReader.setOnImageAvailableListener(null, imageReaderHandler);
+            imageReaderHandler.post(imageReader::close); // ensure handler has finished all processing
             imageReaderThread.quitSafely();
-            imageReaderThread.join(); // ensure handler has finished all processing
-            imageReader.close();
             framePool.clear();
-            // Stop decoder
-            decoder.stop();
-            decoder.release();
         } catch (Exception ex) {
             Log.e("NatSuite", "NatReader Error: Frame enumerator encountered error on release", ex);
         }
