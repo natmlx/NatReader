@@ -10,8 +10,8 @@
 #include <jni.h>
 #include <cstring>
 
-
 static JNIEnv* GetEnv ();
+static jclass MP4ReaderClass;
 
 #pragma region --Bridge--
 
@@ -122,13 +122,11 @@ void* NRCreateMP4Reader (const char* uri) {
         return nullptr;
     // Create reader
     jstring path = env->NewStringUTF(uri);
-    jclass clazz = env->FindClass("api/natsuite/natreader/MP4Reader");
-    jmethodID constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;)V");
-    jobject object = env->NewObject(clazz, constructor, path);
+    jmethodID constructor = env->GetMethodID(MP4ReaderClass, "<init>", "(Ljava/lang/String;)V");
+    jobject object = env->NewObject(MP4ReaderClass, constructor, path);
     jobject reader = env->NewGlobalRef(object);
     // Release locals
     env->DeleteLocalRef(path);
-    env->DeleteLocalRef(clazz);
     env->DeleteLocalRef(object);
     return static_cast<void*>(reader);
 }
@@ -169,6 +167,10 @@ static JavaVM* jvm;
 
 BRIDGE JNIEXPORT jint JNICALL JNI_OnLoad (JavaVM* vm, void* reserved) {
     jvm = vm;
+    JNIEnv* env = GetEnv();
+    jclass localMP4ReaderClass = env->FindClass("api/natsuite/natreader/MP4Reader");
+    MP4ReaderClass = (jclass)env->NewGlobalRef(localMP4ReaderClass);
+    env->DeleteLocalRef(localMP4ReaderClass);
     return JNI_VERSION_1_6;
 }
 
