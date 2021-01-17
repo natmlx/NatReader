@@ -1,0 +1,21 @@
+{
+    "name": "com.natsuite.natreader",
+    "version": "1.0.0",
+    "displayName": "NatReader",
+    "description": "Cross-platform video decoding for Unity Engine.",
+    "unity": "2019.3",
+    "keywords": [
+        "video",
+        "decoding",
+        "transcoding",
+        "android",
+        "ios",
+        "macos",
+        "windows"
+    ],
+    "author": {
+        "name": "Yusuf Olokoba",
+        "email": "yusuf@natsuite.io",
+        "url": "https://github.com/natsuite"
+    }
+}
