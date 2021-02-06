@@ -2,7 +2,7 @@
 NatReader is a lightweight video decoding API designed for transcoding applications. It currently supports decoding frames from local video files (`*.mp4`).
 
 ## Setup Instructions
-NatReader can be installed using the Unity Package Manager. In your `package.json` file, add the following dependency:
+NatReader can be installed using the Unity Package Manager. In your `manifest.json` file, add the following dependency:
 ```json
 {
   "dependencies": {
@@ -12,14 +12,21 @@ NatReader can be installed using the Unity Package Manager. In your `package.jso
 ```
 
 ## Decoding Video Frames
-Simply create a frame reader then iterate through the frames within it:
+First, create a frame reader for your media file. Currently, NatReader only supports MP4 video files:
 ```csharp
-var videoPath = "file:///path/to/some/video.mp4";
-using (var reader = new MP4FrameReader(videoPath))
-    foreach (var (pixelBuffer, timestamp) in reader.Read()) {
-        // `pixelBuffer` is a `byte[]` with the frame pixel data in RGBA32 layout
-        // `timestamp` is the frame timestamp in nanoseconds
-    }
+var videoPath = "...";
+var reader = new MP4Reader(videoPath);
+```
+With the reader, you can decode frames using the `Read` method:
+```csharp
+foreach (var (pixelBuffer, timestamp) in reader.Read()) {
+    // Use pixel buffer // This is always a `byte[]` in RGBA32 layout
+    ...
+}
+```
+Finally, when you are done reading frames, make sure to dispose the reader:
+```csharp
+reader.Dispose();
 ```
 
 ## Requirements
