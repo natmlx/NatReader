@@ -1,5 +1,5 @@
 {
-    "name": "NatSuite.Readers.Runtime",
+    "name": "NatSuite.Readers",
     "references": [],
     "includePlatforms": [
         "Android",

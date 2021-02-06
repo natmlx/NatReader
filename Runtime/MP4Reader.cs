@@ -70,12 +70,12 @@ namespace NatSuite.Readers {
                 yield break;
             }
             // Read
+            var nativeBuffer = Marshal.AllocHGlobal(frameSize.width * frameSize.height * 4); // Workaround for Android
+            var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];
             try {
-                var pixelBuffer = new byte[frameSize.width * frameSize.height * 4];
                 for (;;) {
-                    var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
-                    enumerator.CopyNextFrame(handle.AddrOfPinnedObject(), out var _, out var timestamp);
-                    handle.Free();
+                    enumerator.CopyNextFrame(nativeBuffer, out var _, out var timestamp);
+                    Marshal.Copy(nativeBuffer, pixelBuffer, 0, pixelBuffer.Length);
                     if (timestamp < 0L) // EOS
                         break;
                     yield return (pixelBuffer, timestamp);
@@ -83,6 +83,7 @@ namespace NatSuite.Readers {
             }
             // Dispose enumerator
             finally {
+                Marshal.FreeHGlobal(nativeBuffer);
                 enumerator.DisposeEnumerator();
             }
         }
