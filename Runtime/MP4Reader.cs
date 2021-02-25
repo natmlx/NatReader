@@ -66,7 +66,7 @@ namespace NatSuite.Readers {
             // Create enumerator
             var enumerator = reader.CreateEnumerator(startTime, duration, frameSkip);
             if (enumerator == IntPtr.Zero) {
-                Debug.LogError("NatReader Error: MP4FrameReader failed to create enumerator");
+                Debug.LogError("NatReader Error: MP4Reader failed to create enumerator");
                 yield break;
             }
             // Read
